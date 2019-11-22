@@ -1,0 +1,13 @@
+{
+  "revpiNodes": {
+    "getpin": {
+      "getoverwritevalueLabel": "Get Pin from Payload"
+    },
+    "output": {
+      "server": "Server",
+      "outputPin": "Pin",
+      "outputValue": "Output Value",
+      "messageOverwrite": "Overwrite Output"
+    }
+  }
+}

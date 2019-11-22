@@ -1,0 +1,159 @@
+<script type="text/x-red" data-help-name="revpi-output">
+<p>Verbindet sich mit einem Revolution Pi und leitet über den Input Port ankommende Werte an die RevPi Output Pins weiter. </p>
+<h3>Server</h3>
+<p>Adresse &#252ber die Node Red mit dem RevPi kommuniziert. </p>
+<h3>Input</h3>
+    <dl class="message-properties">
+        <dt>Input Port
+            <span class="property-type">string</span>
+        </dt>
+        <dd>Wert auf den der RevPi Output Pin gesetzt wird.</dd>
+    </dl>
+    
+<h3>RevPi Output</h3>
+    <dl class="message-properties">
+        <dt>Pin
+            <span class="property-type">Port</span>
+        </dt>
+        <dd> Name des Output Pins </dd>
+        <dt class="optional">Output Value 
+            <span class="property-type">string</span></dt>
+        <dd> Manuell festgelegter Wert der vom Output Pin ausgegeben wird.</dd>
+    </dl>
+<h3> Overwrite Output </h3>
+<p>Wenn ausgew&#228hlt, wird die Message vom Input Pin anstelle des Output Values als Ausgabewert genutzt.</p>
+<h3>Details</h3>
+  <p>Der RevPi Output Knoten kann einen Wert an einem Output Pin des RevPis ausgeben. 
+  Der Pin wird in den Optionen festgelegt. Der auszugebende Wert, wird entweder auch in den Optionen festgelegt oder durch den Input Port des Knotens belegt. In beiden F&#228llen wird der Knoten durch die eingehende Nachricht am Input Port getriggert.</p>
+
+  <p>Um die Pins ausw&#228hlen zu k&#246nnen, muss der Knoten mit dem RevPi verbunden werden. Dazu wird unter Server die Adresse des RevPi eingetragen.
+  L&#228uft die Node Red Umgebung auf dem RevPi kann hierf&#252r localhost oder 127.0.0.1  und der Port 8000 verwendet werden.</p>
+</script>
+
+
+
+
+
+
+<script type="text/x-red" data-help-name="revpi-multiple-input">
+<p>Verbindet sich mit einem Revolution Pi und leitet mehere RevPi Input Werte &#252ber den Output Port als msg.payload weiter.</p>
+<p>Getriggert wird dieser Knoten durch Werte&#228nderungen an den RevPi Input Pins. </p>
+<h3>RevPi Input</h3>
+    <dl class="message-properties">
+        <dt>Input Pins
+            <span class="property-type">Port</span>
+        </dt>
+        <dd> Zur Auswahl stehen alle Input Pins die vom RevPi zur Verf&#252gung gestellt werden. </dd>
+    </dl>
+    
+<h3>Output</h3>
+  <dl class="message-properties">
+          <dt>Output Port
+              <span class="property-type">JSON</span>
+          </dt>
+    <p>Als Output wird ein JSON konformer String generiert. Enthalten in diesem String sind die ausgew&#228hlten Pin-IDs und deren aktuellen Werte.</p>    
+  </dl>
+<h3>Details</h3>
+  <p>Der RevPi Input Knoten kann einen oder mehrere Werte von den Input Pins des RevPi auslesen. 
+  Die Werte werden initial nach einem Deploy am Output Port des Knotens ausgegeben. 
+  Danach wird bei jeder Werte&#228nderung an den ausgew&#228hlten Pins nur der Wert des sich ge&#228nderten Pins am Output Port des Knotens ausgegeben.</p>
+
+  <p>Um die Pins ausw&#228hlen zu k&#246nnen, muss der Knoten mit dem RevPi verbunden werden. Dazu wird unter Server die Adresse des RevPi eingetragen.
+  L&#228uft die Node Red Umgebung auf dem RevPi kann hierf&#252r localhost oder 127.0.0.1  und der Port 8000 verwendet werden.</p>
+</script>
+
+
+
+<script type="text/x-red" data-help-name="revpi-single-input">
+<p>Verbindet sich mit einem Revolution Pi und leitet einzelne RevPi Input Werte &#252ber den Output Port als msg.payload weiter.</p>
+<p>Getriggert wird dieser Knoten durch Werte&#228nderungen an einem RevPi Input Pin. </p>
+<h3>RevPi Input</h3>
+    <dl class="message-properties">
+        <dt>Input Pin
+            <span class="property-type">Port</span>
+        </dt>
+        <dd> Zur Auswahl stehen alle Input Pins die vom RevPi zur Verf&#252gung gestellt werden. </dd>
+    </dl>
+    
+<h3>Output</h3>
+  <dl class="message-properties">
+          <dt>Output Port
+              <span class="property-type">JSON</span>
+          </dt>
+    <p>F&#252r den ausgew&#228hlten RevPi Input Pin wird der Wert in Form eines Strings ausgegeben. </p>
+  </dl>
+<h3>Details</h3>
+  <p>Der RevPi Input Knoten kann einen Wert von einem Input Pin des RevPi auslesen. 
+  Die Werte werden initial nach einem Deploy am Output Port des Knotens ausgegeben. 
+  Danach wird bei jeder Werte&#228nderung an dem ausgew&#228hlten Pin der Wert am Output Port des Knotens ausgegeben.</p>
+
+  <p>Um einen Pin ausw&#228hlen zu k&#246nnen, muss der Knoten mit dem RevPi verbunden werden. Dazu wird unter Server die Adresse des RevPi eingetragen.
+  L&#228uft die Node Red Umgebung auf dem RevPi kann hierf&#252r localhost oder 127.0.0.1  und der Port 8000 verwendet werden.</p>
+</script>
+
+
+<script type="text/x-red" data-help-name="revpi-getpin">
+<p>Verbindet sich mit einem Revolution Pi und leitet einzelne RevPi Input Werte &#252ber den Output Port als msg.payload weiter. </p>
+<p>Getriggert wird dieser Knoten durch den Input Port des Knotens. Optional kann hier&#252ber auch die Auswahl des auszulesenden RevPi Pins erfolgen.</p>
+<h3>Input</h3>
+    <dl class="message-properties">
+        <dt>Input Pin
+            <span class="property-type">string</span>
+        </dt>
+        <dd>Optional der Name des RevPi Pins als String der ausgelesen werden soll.</dd>
+    </dl>
+    
+<h3>Output</h3>
+  <dl class="message-properties">
+          <dt>Output Port
+              <span class="property-type">string</span>
+          </dt>
+    <p>Der Wert des ausgelesenen RevPi Pins als String.</p>
+
+  </dl>
+  
+<h3>RevPi Input</h3>
+    <dl class="message-properties">
+        <dt>Input Pin
+            <span class="property-type">Port</span>
+        </dt>
+        <dd> Wird "Get Pin-ID from Payload" ausgew&#228hlt, wird &#252ber den eingehenden String vom Input Port des Knotens der RevPi Input Pin gew&#228hlt. 
+        Andernfalls kann der Pin im Men&#252 ausgew&#228hlt werden, der Input des Knotens hat dann keine Auswirkungen auf die Wahl des RevPi Input Pins. </dd>
+    </dl>
+<h3>Details</h3>
+  <p>Der RevPi Getpin Knoten kann einen Wert von einem Pins des RevPi auslesen. 
+   Ausgel&#246&#223t wird dies durch einkommende Nachrichten am Input Port des Knotens. </p>
+   <p>Der auszulesende RevPi Pin kann entweder f&#252r den Knoten hinterlegt werden oder dynamisch &#252ber die eingehende Nachricht gew&#228hlt werden.</p>
+
+  <p>Um die Pins auslesen zu k&#246nnen, muss der Knoten mit dem RevPi verbunden werden. Dazu wird unter Server die Adresse des RevPi eingetragen.
+  L&#228uft die Node Red Umgebung auf dem RevPi kann hierf&#252r localhost oder 127.0.0.1  und der Port 8000 verwendet werden.</p>
+</script>
+
+
+
+
+
+<script type="text/x-red" data-help-name="revpi-server">
+
+<dl class="message-properties">
+        <dt>Server
+            <span class="property-type">string</span>
+        </dt>
+        <dd> Adresse des Revolution Pi. L&#228uft Node-Red auf dem zu steuernden RevPi 
+		kann "localhost" oder 127.0.0.1 genutzt werden.</dd>
+    
+        <dt>Port
+            <span class="property-type">string</span>
+        </dt>
+        <dd> Port 	&#252ber dem der Service des RevPi-Nodes-Server erreichbar ist.
+		Standardwert ist Port 8000</dd>
+    </dl>
+<h3>Details</h3>
+  <p>Um auf die Ein- und Ausg&#228nge des RevPis zugreifen zu k&#246nnen muss der Node mit den RevPi verbunden werden.</p>
+  <p>In der Regel ist Node-Red auf dem RevPi installiert, deswegen kann die lokale Adresse in verbindung mit Port 8000 genutzt werden.
+  </p>
+
+
+
+
+</script>

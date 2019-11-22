@@ -1,0 +1,439 @@
+<!-- node-red-contrib-revpi-nodes
+ 
+  Copyright (C) 2019 erminas GmbH
+ 
+  This file is subject to the terms and conditions defined in
+  file 'LICENSE.txt', which is part of this source code package.
+-->
+
+<style>
+    .hidden {
+        display: none !important;
+    }
+
+    #revpi-multiple-input-wrapper {
+        display: inline-block;
+        width: calc(100% - 105px);
+        max-width: 400px;
+    }
+
+    #revpi-multiple-input-wrapper label {
+        width: 100%;
+    }
+
+    #revpi-multiple-input-wrapper input {
+        width: initial;
+    }
+
+    .row-wrapper,
+    #node-input-overwritevalue-label,
+    #node-input-getoverwritevalue-label {
+        display: inline-block;
+        width: calc(100% - 105px);
+    }
+
+    #node-input-overwritevalue,
+    #node-input-getoverwritevalue{
+        width: initial;
+        margin-top: 0;
+    }
+
+</style>
+
+<script type="text/javascript">
+    var globalType = null;
+    var pins = null;
+    var pinToHost = {};
+
+    function getPins(host, port, done) {
+        if (host && port) {
+            jQuery.get('revpi-server-list-pins/' + host + '/' + port, function (text) {
+                text = JSON.parse(text);
+                if (text === false) {
+                    pinToHost[host + ':' + port] = null;
+                } else {
+                    pinToHost[host + ':' + port] = text;
+                    pinToHost[host + ':' + port].inputs = pinToHost[host + ':' + port].inputs.sort(function (a, b) {
+                        return a.name.localeCompare(b.name)
+                    });
+                    pinToHost[host + ':' + port].outputs = pinToHost[host + ':' + port].outputs.sort(function (a, b) {
+                        return a.name.localeCompare(b.name)
+                    });
+                    pinToHost[host + ':' + port].both = [].concat(pinToHost[host + ':' + port].inputs, pinToHost[host + ':' + port].outputs);
+                }
+                if (done) {
+                    done();
+                }
+            });
+        }
+    }
+
+    function revPiAddOptions(server, select, input, pintype) {
+        var host = server.host;
+        var port = server.port;
+        var pins = pinToHost[host + ':' + port];
+        if (typeof (pins) === 'undefined' || pins === null) {
+            getPins(server.host, server.port, function () {
+                revPiAddOptions(server, select, input, pintype);
+            });
+            return;
+        }
+        var selectObj = jQuery(select);
+        if (typeof (pintype) === 'undefined') {
+            pintype = 'both';
+        }
+        var currentPins = pins[pintype];
+
+        var currentSelect = jQuery(input).val(), frag = document.createDocumentFragment(), opt = null;
+        for (var i = 0, l = currentPins.length; i < l; ++i) {
+            opt = document.createElement('option');
+            opt.innerHTML = "PIN: " + currentPins[i].name;
+            opt.value = currentPins[i].name;
+            if (currentPins[i].name === currentSelect) {
+                opt.selected = true;
+            }
+            frag.appendChild(opt);
+        }
+        selectObj[0].appendChild(frag);
+    }
+
+
+    function revPiAddMultipleOptions(server, select, input, pintype, inputPinList) {
+        var host = server.host;
+        var port = server.port;
+        var pins = pinToHost[host + ':' + port];
+        if (typeof (pins) === 'undefined' || pins === null) {
+            getPins(server.host, server.port, function () {
+                revPiAddMultipleOptions(server, select, input, pintype, inputPinList);
+            });
+            return;
+        }
+        var selectObj = jQuery(select);
+        if (typeof (pintype) === 'undefined') {
+            pintype = 'both';
+        }
+
+        var frag = document.createDocumentFragment(), checkbox;
+        inputPinList = inputPinList ? inputPinList : [];
+        [...pins[pintype]].sort((a, b) => a.name.localeCompare(b.name, 'en', {
+            numeric: true,
+            sensitivity: 'base'
+        })).forEach(pin => {
+            checkbox = jQuery('<label class="checkbox"><input type="checkbox" name="pins" value="' + pin.name + '"' + ((inputPinList.indexOf(pin.name) !== -1) ? ' checked' : '') + ' /> ' + pin.name + '</label>');
+            frag.appendChild(checkbox[0]);
+        });
+        selectObj[0].appendChild(frag);
+    }
+
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('revpi-server', {
+        category: 'config',
+        defaults: {
+            host: {value: "localhost", required: true},
+            port: {value: 8000, required: true, validate: RED.validators.number()}
+        },
+        oneditsave: function () {
+            var host = this.host = jQuery('#node-config-input-host').val();
+            var port = this.port = parseInt(jQuery('#node-config-input-port').val(), 10);
+
+            if (pinToHost[host + ':' + port]) {
+            } else {
+                if (globalType != null) {
+                    var a = window.setInterval(function () {
+                        if (jQuery(globalType[0]).length > 0) {
+                            revPiAddOptions({host: host, port: port}, globalType[0], globalType[1], globalType[2]);
+                            clearInterval(a);
+                        }
+                    }, 400);
+                }
+            }
+        },
+        label: function () {
+            return this.host + ":" + this.port;
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="revpi-server">
+    <div class="form-row">
+        <label for="node-config-input-host"><i class="icon-tag"></i> Host</label>
+        <input type="text" id="node-config-input-host">
+    </div>
+	<div class="form-row">
+        <label for="node-config-input-port"><i class="icon-tag"></i> Port</label>
+        <input type="text" id="node-config-input-port">
+    </div>
+
+
+</script>
+
+
+<script type="text/javascript">
+    RED.nodes.registerType('revpi-single-input', {
+        category: 'Revolution Pi',
+        color: '#dfdfdf',
+        defaults: {
+            server: {value: "localhost:8000", type: "revpi-server", required: true},
+            inputpin: {
+                value: "",
+                exportable: true,
+                required: true
+            }
+        },
+        inputs: 0,
+        outputs: 1,
+        icon: "revpi.png",
+        label: function () {
+            return (this.inputpin) ? "Pin:" + this.inputpin : "revpi-single-input";
+        },
+        oneditprepare: function () {
+            if (this.server && this.server != null && this.server.length > 0) {
+                var server = RED.nodes.node(this.server);
+                if (server != null) {
+                    globalType = ["#node-input-inputpin-fake", "#node-input-inputpin", "inputs"];
+                    revPiAddOptions(server, "#node-input-inputpin-fake", "#node-input-inputpin", "inputs");
+                }
+            }
+            jQuery('#node-input-server').on('change', function () {
+                if (jQuery(this).val() !== '_ADD_') {
+                    revPiAddOptions(RED.nodes.node(jQuery(this).val()), "#node-input-inputpin-fake", "#node-input-inputpin", "inputs");
+                }
+            });
+
+        },
+        oneditsave: function () {
+            jQuery('#node-input-inputpin').val(jQuery('#node-input-inputpin-fake').val());
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="revpi-single-input">
+	<div class="form-row">
+        <label for="node-input-server"><i class="fa fa-random"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+	<div class="form-row">
+        <label for="node-input-inputpin"><i class="fa fa-circle"></i> Input Pin</label>
+		<input type="text" id="node-input-inputpin" class="hidden">
+		<select id="node-input-inputpin-fake"></select>
+    </div>
+
+
+</script>
+
+
+<script type="text/javascript">
+    RED.nodes.registerType('revpi-multiple-input', {
+        'category': 'Revolution Pi',
+        'color': '#dfdfdf',
+
+        'defaults': {
+            'server': {'value': "", 'type': "revpi-server", 'required': true},
+            'inputPinList': [],
+            'inputpin': {
+                'value': "",
+                'exportable': true,
+                'required': true
+            }
+        },
+        'inputs': 0,
+        'outputs': 1,
+        'icon': "revpi.png",
+        'label': function () {
+            if (this.inputpin !== "") {
+                return "Pins:" + this.inputpin;
+            } else {
+                return "revpi-multiple-input";
+            }
+        },
+        'oneditprepare': function () {
+
+            if (this.server && this.server != null && this.server.length > 0) {
+                var server = RED.nodes.node(this.server);
+                if (server !== null) {
+                    globalType = ["#revpi-multiple-input-wrapper", "#node-input-inputpin", "inputs"];
+                    revPiAddMultipleOptions(server, "#revpi-multiple-input-wrapper", "#node-input-inputpin", "inputs", this.inputPinList);
+                }
+            }
+        },
+        'oneditsave': function () {
+            var pinsList = [];
+            jQuery('#revpi-multiple-input-wrapper input[name="pins"]:checked').each(function () {
+                pinsList.push(this.value)
+            });
+            jQuery('#node-input-inputpin').val(this.inputPinList = pinsList);
+
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="revpi-multiple-input">
+	<div class="form-row">
+        <label for="node-input-server"><i class="fa fa-random"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+
+	<div class="form-row" style="min-width: 540px">
+        <label for="node-input-inputpin" style="vertical-align: top;"><i class="fa fa-circle"></i> Input Pins</label>
+        <input type="text" id="node-input-inputpin" class="hidden">
+        <div id="revpi-multiple-input-wrapper"></div>
+    </div>
+
+
+</script>
+
+
+<script type="text/javascript">
+    RED.nodes.registerType('revpi-getpin', {
+        category: 'Revolution Pi',
+        color: '#dddddd',
+        defaults: {
+            server: {value: "", type: "revpi-server", required: true},
+            inputpin: {
+                value: "",
+                exportable: true,
+                required: true
+            },
+            getoverwritevalue: {value: true}
+        },
+
+        inputs: 1,
+        outputs: 1,
+        icon: "revpi.png",
+        label: function () {
+            if (this.getoverwritevalue === false) {
+                return "Pin: " + this.inputpin;
+            }
+            return "revpi-getpin";
+        },
+        oneditprepare: function () {
+            if (this.server && this.server != null && this.server.length > 0) {
+                var server = RED.nodes.node(this.server);
+                if (server != null) {
+                    globalType = ["#node-input-inputpin-fake", "#node-input-inputpin", "both"];
+                    revPiAddOptions(server, "#node-input-inputpin-fake", "#node-input-inputpin", "both");
+                }
+            }
+            jQuery('#node-input-server').on('change', function () {
+                if (jQuery(this).val() !== '_ADD_') {
+                    revPiAddOptions(RED.nodes.node(jQuery(this).val()), "#node-input-inputpin-fake", "#node-input-inputpin", "both");
+                }
+            });
+            jQuery('#node-input-getoverwritevalue').off('change').on('change', function () {
+                if (jQuery(this).is(':checked')) {
+                    jQuery('#selectPin').hide().find('#node-input-inputpin').val('');
+                } else {
+                    jQuery('#selectPin').show();
+                }
+            }).trigger('change');
+        },
+
+        oneditsave: function () {
+            jQuery('#node-input-inputpin').val(jQuery('#node-input-inputpin-fake').val());
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="revpi-getpin">
+	<div class="form-row">
+        <label for="node-input-server"><i class="fa fa-random"></i> Server</label>
+        <input type="text" id="node-input-server">
+    </div>
+
+	<div class="form-row">
+	    <label></label>
+        <label id="node-input-getoverwritevalue-label" for="node-input-getoverwritevalue">
+            <input type="checkbox" id="node-input-getoverwritevalue">
+            <span data-i18n="revpiNodes.getpin.getoverwritevalueLabel"></span>
+		</label>
+    </div>
+	<div class="form-row" id="selectPin">
+        <label for="node-input-inputpin"><i class="fa fa-circle"></i> Input Pin</label>
+        <div class="row-wrapper">
+            <input type="text" id="node-input-inputpin" class="hidden">
+            <select id="node-input-inputpin-fake"></select>
+		</div>
+    </div>
+	
+
+
+</script>
+
+
+<script type="text/javascript">
+    RED.nodes.registerType('revpi-output', {
+        category: 'Revolution Pi',
+        color: '#cccccc',
+        defaults: {
+            server: {value: "localhost:8000", type: "revpi-server", required: true},
+            outputpin: {
+                value: "",
+                exportable: true,
+                required: true
+            },
+            overwritevalue: {value: false},
+            outputvalue: {
+                value: "",
+                exportable: true,
+                required: false
+            }
+        },
+        inputs: 1,
+        outputs: 0,
+        icon: "revpi.png",
+        label: function () {
+            return (this.overwritevalue) ? "Pin:" + this.outputpin : "revpi-output";
+        },
+        oneditprepare: function () {
+            if (this.server && this.server.length > 0) {
+                var server = RED.nodes.node(this.server);
+                if (server != null) {
+                    globalType = ["#node-input-outputpin-fake", "#node-input-outputpin", "outputs"];
+                    revPiAddOptions(server, "#node-input-outputpin-fake", "#node-input-outputpin", "outputs");
+                }
+            }
+            jQuery('#node-input-server').on('change', function () {
+                if (jQuery(this).val() !== '_ADD_') {
+                    revPiAddOptions(RED.nodes.node(jQuery(this).val()), "#node-input-outputpin-fake", "#node-input-outputpin", "outputs");
+                }
+            });
+
+            jQuery('#node-input-overwritevalue').off('change').on('change', function () {
+                if (jQuery(this).is(':checked')) {
+                    jQuery('#node-input-outputvalue').attr('disabled', false);
+                } else {
+                    jQuery('#node-input-outputvalue').val("").attr('disabled', true);
+                }
+            });
+        },
+        oneditsave: function () {
+            jQuery('#node-input-outputpin').val(jQuery('#node-input-outputpin-fake').val());
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="revpi-output">
+	<div class="form-row">
+        <label for="node-input-server"><i class="fa fa-random"></i> <span data-i18n="revpiNodes.output.server"></span></label>
+        <input type="text" id="node-input-server">
+    </div>
+	<div class="form-row">
+        <label for="node-input-outputpin"><i class="fa fa-circle"></i> <span data-i18n="revpiNodes.output.outputPin"></span></label>
+		<input type="text" id="node-input-outputpin" class="hidden">
+		<select id="node-input-outputpin-fake"></select>
+    </div>
+	<div class="form-row">
+	    <label></label>
+	    <div class="row-wrapper">
+	        <label id="node-input-overwritevalue-label" for="node-input-overwritevalue">
+                <input type="checkbox" id="node-input-overwritevalue" value="node-input-overwritevalue-check" />
+                <span data-i18n="revpiNodes.output.messageOverwrite"></span>
+            </label>
+            <input type="text" id="node-input-outputvalue" disabled>
+	    </div>
+    </div>
+
+</script>
+
