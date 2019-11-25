@@ -169,7 +169,7 @@ module.exports = function (RED) {
         }
 
         this.on("input", function (msg) {
-            var val = this.overwritevalue ? msg.payload : this.outputvalue;
+            var val = this.overwritevalue ? this.outputvalue : msg.payload;
             var node = this;
             if (this.server && val !== null && typeof (val) !== "object") {
                 this.server.socket.sendCommand("output", function () {

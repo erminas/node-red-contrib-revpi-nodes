@@ -384,7 +384,7 @@
         outputs: 0,
         icon: "revpi.png",
         label: function () {
-            return (this.overwritevalue) ? "Pin:" + this.outputpin : "revpi-output";
+            return "Pin:" + this.outputpin;
         },
         oneditprepare: function () {
             if (this.server && this.server.length > 0) {

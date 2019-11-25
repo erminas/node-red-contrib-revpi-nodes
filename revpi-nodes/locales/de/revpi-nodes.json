@@ -1,13 +1,13 @@
 {
   "revpiNodes": {
     "getpin": {
-      "getoverwritevalueLabel": "Pin aus Payload holen?"
+      "getoverwritevalueLabel": "Pin Namen aus Payload nehmen"
     },
     "output": {
       "server": "Server",
       "outputPin": "Pin",
       "outputValue": "Ausgabe",
-      "messageOverwrite": "Ausgabe manuel setzen?"
+      "messageOverwrite": "Ausgabewert überschreiben"
     }
   }
 }
