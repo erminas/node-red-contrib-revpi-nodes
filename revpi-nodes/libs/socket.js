@@ -67,6 +67,7 @@ module.exports = function (url) {
 
                 var pins = multiInputNodes[id].inputpin.split(","), promises = [];
                 if (pins.indexOf(pin) !== -1) {
+                    promises.push(Promise.resolve(multiInputNodes[id]));
                     promises.push(Promise.resolve([pin, value]));
 
                     pins = pins.filter(a => a !== pin).forEach(otherPin => {
@@ -83,14 +84,15 @@ module.exports = function (url) {
                     });
 
                     Promise.all(promises).then(values => {
+                        var node = values.shift();
                         var payloadJSONObj = {};
                         values.forEach(valPair => {
                             payloadJSONObj[valPair[0]] = valPair[1];
                         });
-                        multiInputNodes[id].send({payload: payloadJSONObj});
-                        multiInputNodes[id].status(getStatusObject("info", "Received value(s)"))
+                        node.send({payload: payloadJSONObj});
+                        node.status(getStatusObject("info", "Received value(s)"))
                     }).catch((pin) => {
-                        multiInputNodes[id].status(getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
+                        node.status(getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
                     });
                 }
             }
