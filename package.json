@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-revpi-nodes",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "erminas GmbH",
   "license": "LGPL-3.0-only",
   "description": "erminas RevPi Nodes",
@@ -14,8 +14,8 @@
   },
   "main": "index.js",
   "repository": {
-	  "type": "git",
-	  "url": "https://github.com/erminas/node-red-contrib-revpi-nodes.git"
+    "type": "git",
+    "url": "https://github.com/erminas/node-red-contrib-revpi-nodes.git"
   },
   "keywords": [
     "node-red"
