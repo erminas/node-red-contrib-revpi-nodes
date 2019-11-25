@@ -7,7 +7,7 @@ This module provides a set of nodes in Node-RED to read and write to I/O Pins of
 
 ![Missing image: please import example flow directly][flow]
 
-[flow]: https://github.com/erminas/node-red-contrib-revpi-nodes/master/revpi-nodes/examples/example_flow.png "RevPi Nodes Example Flow"
+[flow]: https://raw.githubusercontent.com/erminas/node-red-contrib-revpi-nodes/master/revpi-nodes/examples/example_flow.png "RevPi Nodes Example Flow"
 
 [Import](https://nodered.org/docs/user-guide/editor/workspace/import-export) the following example flow:
 ```
