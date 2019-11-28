@@ -1,4 +1,4 @@
-RevPi Nodes
+Official Revolution Pi Nodes
 ------
 
 This module provides a set of nodes in Node-RED to read and write to I/O Pins of your Revolution Pi.
