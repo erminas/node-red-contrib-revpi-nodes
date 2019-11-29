@@ -42,4 +42,4 @@ npm install [path to the "nodes" folder]/node-red-revpi
 3. Now drag one of the new RevPi nodes into your flow.
 4. Double click the node to edit it.
 5. Click on the pencil icon next to "Server" and set your host and the port 8000.
-> If your using the server on the same RevPi as NodeRed, you can use "localhost" for the host. Otherwise type in the IP Address of the RevPi.
+> If you're using the server on the same RevPi as NodeRed, you can use "localhost" for the host. Otherwise type in the IP Address of the RevPi.
