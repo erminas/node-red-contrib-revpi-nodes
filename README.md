@@ -17,6 +17,9 @@ This module provides a set of nodes in Node-RED to read and write to I/O Pins of
 ### Requirements
 
 Install [noderedrevpinodes-server](https://github.com/erminas/noderedrevpinodes-server) as required backend server.
+
+The server requires  [Raspbian Stretch ](https://revolution.kunbus.de/shop/de/stretch) for correct function.
+
 ```
 sudo apt-get install noderedrevpinodes-server
 ```
