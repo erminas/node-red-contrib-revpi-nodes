@@ -7,10 +7,10 @@
 -->
 
 <script type="text/x-red" data-help-name="revpi-output">
-<p>Connects to a RevPi and forwards incoming values from the input port to a RevPi output pin. </p>
-<h3>Server</h3>
+<p>The output-node connects to a Revolution Pi and forwards incoming values from the input port to a RevPi output pin. </p>
+<h2>Server</h2>
 <p>Address which is used by Node-Red to communicate with the RevPi.</p>
-<h3>Input</h3>
+<h2>Input</h2>
     <dl class="message-properties">
         <dt>Input Port
             <span class="property-type">string</span>
@@ -18,20 +18,23 @@
         <dd> Value to which the RevPi output pin is set.</dd>
     </dl>
     
-<h3>RevPi Output</h3>
+<h2>RevPi Output</h2>
     <dl class="message-properties">
-        <dt>Pin
+        <dt><i class="fa fa-circle"></i> Pin
             <span class="property-type">Port</span>
         </dt>
         <dd> Name of the Output Pin </dd>
-        <dt class="optional">Output Value 
-            <span class="property-type">string</span></dt>
-        <dd> Value to which the RevPi output pin is manually set.</dd>
     </dl>
-<h3> Overwrite Output </h3>
+<h2><i class="fa fa-check-square"></i> Overwrite Output </h2>
 <p>If selected, the message from the input pin is used as output value instead of the output value.</p>
-<h3>Details</h3>
-  <p>The RevPi Output node can output a value at an output pin of the RevPi. 
+
+
+<h2><i class="fa fa-arrow-right"></i> Output Value </h2>
+        <p> Value to which the RevPi output pin is manually set.</p>
+
+
+<h2>Details</h2>
+  <p>The output-node can output a value at an output pin of the RevPi. 
   The pin is defined in the options. The value to be output is also defined in the options or selected by the input of the node. In both cases the node is triggered by the incoming message at the input port.</p>
 
   <p>To be able to select the pins, the node must be connected to the RevPi. The address of the RevPi is entered under the field Server.
@@ -44,25 +47,25 @@
 
 
 <script type="text/x-red" data-help-name="revpi-multiple-input">
-<p>Connects to a RevPi and returns multiple RevPi input values on the output port as msg.payload.</p>
+<p>The multiple-input-node connects to a Revolution Pi and returns multiple RevPi input values on the output port as msg.payload.</p>
 <p>This node is triggered by value changes at the RevPi input pins.</p>
-<h3>RevPi Input</h3>
+<h2>RevPi Input</h2>
     <dl class="message-properties">
-        <dt>Input Pins
+        <dt><i class="fa fa-circle"></i> Input Pins
             <span class="property-type">Port</span>
         </dt>
-        <dd> All input pins provided by the RevPi are available for selection.</dd>
+        <dd> All input pins defined in the Pictory of the RevPis are available for selection. The pin names correspond to the names assigned in the value editor of the module.</dd>
     </dl>
     
-<h3>Output</h3>
+<h2>Output</h2>
   <dl class="message-properties">
           <dt>Output Port
               <span class="property-type">JSON</span>
           </dt>
     <p>A JSON compliant string is generated as output. This string contains the selected pin names and their current values.</p>    
   </dl>
-<h3>Details</h3>
-  <p>The RevPi Input node can read one or more values from the RevPi input pins. 
+<h2>Details</h2>
+  <p>The multiple-input-node can read one or more values from the RevPi input pins. 
   The values are initially output after a deploy at the output port of the node. 
   After that a Json string, which contains all values of the pins, is sent on the output port of the node whenever a value is changed at the selected pins.</p>
 
@@ -72,25 +75,25 @@
 
 
 <script type="text/x-red" data-help-name="revpi-single-input">
-<p>Connects to a RevPi and returns a single RevPi input value on the output port as msg.payload.</p>
+<p>The single-input-node connects to a Revolution Pi and returns a single RevPi input value on the output port as msg.payload.</p>
 <p>This node is triggered by value changes at the RevPi input pins.</p>
-<h3>RevPi Input</h3>
+<h2>RevPi Input</h2>
     <dl class="message-properties">
-        <dt>Input Pin
+        <dt><i class="fa fa-circle"></i> Input Pin
             <span class="property-type">Port</span>
         </dt>
-        <dd> All input pins provided by the RevPi are available for selection.</dd>
+        <dd> All input pins defined in the Pictory of the RevPis are available for selection. The pin names correspond to the names assigned in the value editor of the module.</dd>
     </dl>
     
-<h3>Output</h3>
+<h2>Output</h2>
   <dl class="message-properties">
           <dt>Output Port
               <span class="property-type">JSON</span>
           </dt>
     <p>For the selected RevPi input pin, the value is sent in the form of a string as msg.payload.</p>
   </dl>
-<h3>Details</h3>
-  <p>The RevPi Input node can read a value from an input pin of the RevPi. 
+<h2>Details</h2>
+  <p>The single-input-node can read a value from an input pin of the RevPi. 
   The values are initially sent after a deploy at the output pin of the node. 
 Afterwards the value is sent on the output port of the node whenever the value changes at the selected pins.</p>
 
@@ -100,17 +103,17 @@ Afterwards the value is sent on the output port of the node whenever the value c
 
 
 <script type="text/x-red" data-help-name="revpi-getpin">
-<p>Connects to a RevPi and returns a single RevPi input value on the output port as msg.payload.</p>
+<p>The getpin-node connects to a RevPi and returns a single RevPi input value on the output port as msg.payload.</p>
 <p>This node is triggered by the input pin of the node. Optionally, the selection of the RevPi pin to be read out can also be made here.</p>
-<h3>Input</h3>
+<h2>Input</h2>
     <dl class="message-properties">
-        <dt>Input Pin
+        <dt><i class="fa fa-circle"></i> Input Pin
             <span class="property-type">string</span>
         </dt>
         <dd>Optional name of the RevPi pin as string to be read out.</dd>
     </dl>
     
-<h3>Output</h3>
+<h2>Output</h2>
   <dl class="message-properties">
           <dt>Output Port
               <span class="property-type">string</span>
@@ -119,16 +122,16 @@ Afterwards the value is sent on the output port of the node whenever the value c
 
   </dl>
   
-<h3>RevPi Input</h3>
+<h2>RevPi Input</h2>
     <dl class="message-properties">
         <dt>Input Pin
             <span class="property-type">Port</span>
         </dt>
         <dd> If "Get Pin-ID from Payload" is selected, the RevPi Input Pin is selected via the incoming string from the input port of the node. 
-        Otherwise the pin can be selected in the menu, the input of the node then has no effect on the selection of the RevPi input pin. </dd>
+        The name must then correspond to one of the pin names defined in the Pictory of the RevPis.  </dd>
     </dl>
-<h3>Details</h3>
-  <p>The RevPi Getpin node can read a value from a pin of the RevPi. 
+<h2>Details</h2>
+  <p>The getpin-node can read a value from a pin of the RevPi. 
    This is triggered by incoming messages at the input port of the node. </p>
    <p>The RevPi pin to be read out can either be stored for the node or dynamically selected via the incoming message.</p>
 
@@ -155,7 +158,7 @@ Afterwards the value is sent on the output port of the node whenever the value c
         </dt>
         <dd> Port on which the service of the RevPi node server can be reached. Default value is port 8000.</dd>
     </dl>
-<h3>Details</h3>
+<h2>Details</h2>
   <p>To be able to select the inputs and outputs of the RevPi, the node must be connected to the RevPi.<p></p>
   Usually Node-Red is installed on the RevPi, therefore the local address can be used in connection with port 8000.
   </p>

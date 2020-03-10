@@ -158,11 +158,11 @@
 
 <script type="text/x-red" data-template-name="revpi-server">
     <div class="form-row">
-        <label for="node-config-input-host"><i class="icon-tag"></i> Host</label>
+        <label for="node-config-input-host"><i class="icon-tag"></i> <span data-i18n="revpiNodes.server.host"></span></label>
         <input type="text" id="node-config-input-host">
     </div>
 	<div class="form-row">
-        <label for="node-config-input-port"><i class="icon-tag"></i> Port</label>
+        <label for="node-config-input-port"><i class="icon-tag"></i> <span data-i18n="revpiNodes.server.port"></span></label>
         <input type="text" id="node-config-input-port">
     </div>
 
@@ -211,11 +211,11 @@
 
 <script type="text/x-red" data-template-name="revpi-single-input">
 	<div class="form-row">
-        <label for="node-input-server"><i class="fa fa-random"></i> Server</label>
+        <label for="node-input-server"><i class="fa fa-random"></i> <span data-i18n="revpiNodes.single-input.server"></label>
         <input type="text" id="node-input-server">
     </div>
 	<div class="form-row">
-        <label for="node-input-inputpin"><i class="fa fa-circle"></i> Input Pin</label>
+        <label for="node-input-inputpin"><i class="fa fa-circle"></i> <span data-i18n="revpiNodes.single-input.input-pin"></label>
 		<input type="text" id="node-input-inputpin" class="hidden">
 		<select id="node-input-inputpin-fake"></select>
     </div>
@@ -243,10 +243,25 @@
         'icon': "revpi.png",
         'label': function () {
             if (this.inputpin !== "") {
-                return "Pins:" + this.inputpin;
-            } else {
-                return "revpi-multiple-input";
-            }
+                const maxLabelLength = 48;
+                let cut = maxLabelLength;
+                if (this.inputpin.length < maxLabelLength) {
+                    return "Pins:" + this.inputpin;
+                } else if (this.inputpin.length >= maxLabelLength) {
+                    for (let i = 0; i < this.inputpin.length; i++) {
+                        if (this.inputpin[i] === ",") {
+                            if (i < maxLabelLength) {
+                                cut = i;
+                            } else if (i > maxLabelLength) {
+                                break;
+                            }
+                        }
+                    }
+                    return "Pins:" + this.inputpin.slice(0, cut) + "...";
+                } 
+            }else {
+                    return "revpi-multiple-input";
+                }
         },
         'oneditprepare': function () {
 
@@ -271,12 +286,12 @@
 
 <script type="text/x-red" data-template-name="revpi-multiple-input">
 	<div class="form-row">
-        <label for="node-input-server"><i class="fa fa-random"></i> Server</label>
+        <label for="node-input-server"><i class="fa fa-random"></i> <span data-i18n="revpiNodes.multi-input.server"></label>
         <input type="text" id="node-input-server">
     </div>
 
 	<div class="form-row" style="min-width: 540px">
-        <label for="node-input-inputpin" style="vertical-align: top;"><i class="fa fa-circle"></i> Input Pins</label>
+        <label for="node-input-inputpin" style="vertical-align: top;"><i class="fa fa-circle"></i> <span data-i18n="revpiNodes.multi-input.input-pins"></label>
         <input type="text" id="node-input-inputpin" class="hidden">
         <div id="revpi-multiple-input-wrapper"></div>
     </div>
@@ -338,7 +353,7 @@
 
 <script type="text/x-red" data-template-name="revpi-getpin">
 	<div class="form-row">
-        <label for="node-input-server"><i class="fa fa-random"></i> Server</label>
+        <label for="node-input-server"><i class="fa fa-random"></i><span data-i18n="revpiNodes.getpin.server"></span></label>
         <input type="text" id="node-input-server">
     </div>
 
@@ -350,7 +365,7 @@
 		</label>
     </div>
 	<div class="form-row" id="selectPin">
-        <label for="node-input-inputpin"><i class="fa fa-circle"></i> Input Pin</label>
+        <label for="node-input-inputpin"><i class="fa fa-circle"></i> <span data-i18n="revpiNodes.getpin.input-pin"></label>
         <div class="row-wrapper">
             <input type="text" id="node-input-inputpin" class="hidden">
             <select id="node-input-inputpin-fake"></select>
@@ -425,7 +440,7 @@
 		<select id="node-input-outputpin-fake"></select>
     </div>
 	<div class="form-row">
-	    <label></label>
+	    <label><i class="fa fa-arrow-right"></i><span data-i18n="revpiNodes.output.outputValue"></span></label>
 	    <div class="row-wrapper">
 	        <label id="node-input-overwritevalue-label" for="node-input-overwritevalue">
                 <input type="checkbox" id="node-input-overwritevalue" value="node-input-overwritevalue-check" />

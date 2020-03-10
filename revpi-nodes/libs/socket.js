@@ -57,9 +57,9 @@ module.exports = function (url) {
             for (id in inputNodes) {
                 if (!inputNodes.hasOwnProperty(id)) continue;
 
-                if (inputNodes[id].inputpin.includes(pin)) {
-                    inputNodes[id].send({payload: value});
-                    inputNodes[id].status(getStatusObject("info", "Changed " + pin + " to " + value))
+                if (inputNodes[id].inputpin === pin){ 
+                    inputNodes[id].send({payload: value, topic: "revpi/single/"+pin});
+                    inputNodes[id].status(getStatusObject("info", "Change - " + pin + " is " + value))
                 }
             }
             for (id in multiInputNodes) {
@@ -89,7 +89,7 @@ module.exports = function (url) {
                         values.forEach(valPair => {
                             payloadJSONObj[valPair[0]] = valPair[1];
                         });
-                        node.send({payload: payloadJSONObj});
+                        node.send({payload: payloadJSONObj, topic: "revpi/multi"});
                         node.status(getStatusObject("info", "Received value(s)"))
                     }).catch((pin) => {
                         node.status(getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
@@ -147,22 +147,22 @@ module.exports = function (url) {
             /*var id;
             for (id in multiInputNodes) {
                 if (!multiInputNodes.hasOwnProperty(id)) continue;
-                multiInputNodes[id].status(getStatusObject("success", "connected"));
+                multiInputNodes[id].status(getStatusObject("success", "Connected"));
             }
 
             for (id in inputNodes) {
                 if (!inputNodes.hasOwnProperty(id)) continue;
-                inputNodes[id].status(getStatusObject("success", "connected"));
+                inputNodes[id].status(getStatusObject("success", "Connected"));
             }
 
             for (id in getpinNodes) {
                 if (!getpinNodes.hasOwnProperty(id)) continue;
-                getpinNodes[id].status(getStatusObject("success", "connected"));
+                getpinNodes[id].status(getStatusObject("success", "Connected"));
             }
 
             for (id in outputNodes) {
                 if (!outputNodes.hasOwnProperty(id)) continue;
-                outputNodes[id].status(getStatusObject("success", "connected"));
+                outputNodes[id].status(getStatusObject("success", "Connected"));
             }*/
 
             var list = sendCommandPool;

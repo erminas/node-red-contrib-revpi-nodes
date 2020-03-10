@@ -1,7 +1,7 @@
 Official Revolution Pi Nodes
 ------
 
-This module provides a set of nodes in Node-RED to read and write to I/O Pins of your Revolution Pi.
+This module provides a set of nodes in [Node-RED](https://nodered.org/) to read and write to I/O Pins of your [Revolution Pi](https://revolution.kunbus.de/).
 
 ### Example flow
 
@@ -11,12 +11,12 @@ This module provides a set of nodes in Node-RED to read and write to I/O Pins of
 
 [Import](https://nodered.org/docs/user-guide/editor/workspace/import-export) the following example flow:
 ```
-[{"id":"80ebf274.f55a48","type":"revpi-single-input","z":"8394fd0c.3c2238","server":"e9d3f71d.b78cb8","inputpin":"Core_Temperature","x":560,"y":160,"wires":[["9e1832f.ac4df5"]]},{"id":"9e1832f.ac4df5","type":"debug","z":"8394fd0c.3c2238","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":890,"y":220,"wires":[]},{"id":"bb13c4a0.b3b18","type":"revpi-multiple-input","z":"8394fd0c.3c2238","server":"e9d3f71d.b78cb8","inputPinList":["Core_Frequency","RevPiIOCycle"],"inputpin":"Core_Frequency,RevPiIOCycle","x":520,"y":240,"wires":[["9e1832f.ac4df5"]]},{"id":"1d10b638.133c02","type":"revpi-output","z":"8394fd0c.3c2238","server":"e9d3f71d.b78cb8","outputpin":"O_1","overwritevalue":false,"outputvalue":"","x":840,"y":500,"wires":[]},{"id":"1269fe5a.e25fca","type":"inject","z":"8394fd0c.3c2238","name":"","topic":"","payload":"1","payloadType":"num","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":610,"y":460,"wires":[["1d10b638.133c02"]]},{"id":"1a689d4f.2e1f43","type":"inject","z":"8394fd0c.3c2238","name":"","topic":"","payload":"0","payloadType":"num","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":610,"y":560,"wires":[["1d10b638.133c02"]]},{"id":"ae66ae95.d5b6e","type":"inject","z":"8394fd0c.3c2238","name":"Get I_1","topic":"","payload":"I_1","payloadType":"str","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":330,"y":340,"wires":[["76c200fb.16d46"]]},{"id":"76c200fb.16d46","type":"revpi-getpin","z":"8394fd0c.3c2238","server":"e9d3f71d.b78cb8","inputpin":"I_2","getoverwritevalue":false,"x":580,"y":340,"wires":[["9e1832f.ac4df5"]]},{"id":"e9d3f71d.b78cb8","type":"revpi-server","z":0,"host":"127.0.0.1","port":"8000"}]
+[{"id":"4c8a2727.626f18","type":"revpi-single-input","z":"cd6ce79d.34e74","server":"e9d3f71d.b78cb8","inputpin":"Core_Temperature","x":540,"y":140,"wires":[["4cb73975.9ab188"]]},{"id":"4cb73975.9ab188","type":"debug","z":"cd6ce79d.34e74","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"false","x":870,"y":200,"wires":[]},{"id":"6eed10e3.2870c8","type":"revpi-multiple-input","z":"cd6ce79d.34e74","server":"e9d3f71d.b78cb8","inputPinList":["Core_Frequency","RevPiIOCycle"],"inputpin":"Core_Frequency,RevPiIOCycle","x":500,"y":220,"wires":[["4cb73975.9ab188"]]},{"id":"6c86be5c.baad28","type":"revpi-output","z":"cd6ce79d.34e74","server":"e9d3f71d.b78cb8","outputpin":"O_1","overwritevalue":false,"outputvalue":"","x":820,"y":480,"wires":[]},{"id":"6d5715d5.52d894","type":"inject","z":"cd6ce79d.34e74","name":"","topic":"","payload":"1","payloadType":"num","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":590,"y":440,"wires":[["6c86be5c.baad28"]]},{"id":"aa26279c.abde88","type":"inject","z":"cd6ce79d.34e74","name":"","topic":"","payload":"0","payloadType":"num","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":590,"y":540,"wires":[["6c86be5c.baad28"]]},{"id":"364abe72.67b222","type":"inject","z":"cd6ce79d.34e74","name":"Get I_1","topic":"","payload":"I_1","payloadType":"str","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":310,"y":320,"wires":[["ff6f697.6eb9c18"]]},{"id":"ff6f697.6eb9c18","type":"revpi-getpin","z":"cd6ce79d.34e74","server":"e9d3f71d.b78cb8","inputpin":"I_2","getoverwritevalue":true,"x":570,"y":320,"wires":[["4cb73975.9ab188"]]},{"id":"e9d3f71d.b78cb8","type":"revpi-server","z":0,"host":"127.0.0.1","port":"8000"}]
 ```
 
 ### Requirements
 
-Install [noderedrevpinodes-server](https://github.com/erminas/noderedrevpinodes-server) as required backend server.
+Install the required backend server: [noderedrevpinodes-server](https://github.com/erminas/noderedrevpinodes-server) .
 
 The server requires  [Raspbian Stretch ](https://revolution.kunbus.de/shop/de/stretch) for correct function.
 
@@ -36,7 +36,7 @@ npm install [path to the "nodes" folder]/node-red-revpi
 ```
 4. Restart your node-red service
 
-> You can also install the nodes on any other NodeRed.
+> You can also install the nodes on any other Node-RED.
 > Take a look at https://nodered.org/docs/creating-nodes/first-node#testing-your-node-in-node-red for more informations.
 
 ## How to use
@@ -45,4 +45,4 @@ npm install [path to the "nodes" folder]/node-red-revpi
 3. Now drag one of the new RevPi nodes into your flow.
 4. Double click the node to edit it.
 5. Click on the pencil icon next to "Server" and set your host and the port 8000.
-> If you're using the server on the same RevPi as NodeRed, you can use "localhost" for the host. Otherwise type in the IP Address of the RevPi.
+> If you're using the server on the same RevPi as Node-RED, you can use "localhost" for the host. Otherwise type in the IP Address of the RevPi.

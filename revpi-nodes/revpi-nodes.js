@@ -55,7 +55,7 @@ module.exports = function (RED) {
 
         if (this.server) {
             this.server.socket.registerInput(this);
-            this.status(((this.server.socket.isConnected() === false) ? this.getStatusObject("error", "disconnected") : this.getStatusObject("success", "connected")));
+            this.status(((this.server.socket.isConnected() === false) ? this.getStatusObject("error", "Disconnected") : this.getStatusObject("success", "Connected")));
 
             var node = this;
             this.server.socket.sendCommand("getpin", function (msg) {
@@ -65,7 +65,7 @@ module.exports = function (RED) {
                 if (value === "ERROR_UNKNOWN") {
                     node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
                 } else {
-                    node.send({payload: value});
+                    node.send({payload: value, topic: "revpi/single/"+pin});
                 }
             }, [this.inputpin]);
         }
@@ -80,7 +80,7 @@ module.exports = function (RED) {
 
         if (this.server) {
             this.server.socket.registerMultiInput(this);
-            this.status(((this.server.socket.isConnected() === false) ? this.getStatusObject("error", "disconnected") : this.getStatusObject("success", "connected")));
+            this.status(((this.server.socket.isConnected() === false) ? this.getStatusObject("error", "Disconnected") : this.getStatusObject("success", "Connected")));
 
             var node = this, promises = [];
             var pinNames = this.inputpin.split(",").forEach(pinName => {
@@ -115,7 +115,7 @@ module.exports = function (RED) {
                 values.forEach(valPair => {
                     payloadJSONObj[valPair[0]] = valPair[1];
                 });
-                node.send({payload: payloadJSONObj});
+                node.send({payload: payloadJSONObj, topic: "revpi/multi"});
             }).catch(pin => {
                 node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
             });
@@ -133,7 +133,7 @@ module.exports = function (RED) {
 
         if (this.server) {
             this.server.socket.registerGetpin(this);
-            this.status(((this.server.socket.isConnected() === false) ? this.getStatusObject("error", "disconnected") : this.getStatusObject("info", "connected")));
+            this.status(((this.server.socket.isConnected() === false) ? this.getStatusObject("error", "Disconnected") : this.getStatusObject("info", "Connected")));
         }
 
         this.on("input", function (msg) {
@@ -147,7 +147,7 @@ module.exports = function (RED) {
                         node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
                     } else {
                         node.status(node.getStatusObject("info", "Connected - " + pin + " is " + value));
-                        node.send({payload: value});
+                        node.send({payload: value, topic: "revpi/single/"+pin});
                     }
                 }, [pinName]);
             }
@@ -165,7 +165,7 @@ module.exports = function (RED) {
 
         if (this.server) {
             this.server.socket.registerOutput(this);
-            this.status(((this.server.socket.isConnected() === false) ? this.getStatusObject("error", "disconnected") : this.getStatusObject("info", "connected")));
+            this.status(((this.server.socket.isConnected() === false) ? this.getStatusObject("error", "Disconnected") : this.getStatusObject("info", "Connected")));
         }
 
         this.on("input", function (msg) {
@@ -173,7 +173,7 @@ module.exports = function (RED) {
             var node = this;
             if (this.server && val !== null && typeof (val) !== "object") {
                 this.server.socket.sendCommand("output", function () {
-                    node.status(node.getStatusObject("info", "connected - " + node.outputpin + " to " + val));
+                    node.status(node.getStatusObject("info", "Change - " + node.outputpin + " is " + val));
                 }, [this.outputpin, val]);
             }
         });

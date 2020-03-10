@@ -1,13 +1,33 @@
 {
   "revpiNodes": {
-    "getpin": {
-      "getoverwritevalueLabel": "Pin Namen aus Payload nehmen"
+  
+	"single-input": {
+	  "server" : "Server",
+      "input-pin": "Input Pin"
     },
+	
+	"multi-input": {
+	  "server" : "Server",
+      "input-pins": "Input Pins"
+    },
+	
+    "getpin": {
+	  "server" : "Server",
+      "getoverwritevalueLabel": "Pin Namen aus Payload nehmen",
+	  "input-pin": "Input Pin"
+    },
+	
     "output": {
       "server": "Server",
       "outputPin": "Pin",
-      "outputValue": "Ausgabe",
+      "outputValue": "Ausgabewert",
       "messageOverwrite": "Ausgabewert überschreiben"
+    },
+	
+	"server": {
+	  "host" : "Host",
+      "port": "Port"
     }
+	
   }
 }
