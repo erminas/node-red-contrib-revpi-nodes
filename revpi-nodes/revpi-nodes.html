@@ -83,6 +83,11 @@
             pintype = 'both';
         }
         var currentPins = pins[pintype];
+		
+		
+		while (selectObj[0].lastElementChild) {
+			selectObj[0].removeChild(selectObj[0].lastElementChild);
+		  }
 
         var currentSelect = jQuery(input).val(), frag = document.createDocumentFragment(), opt = null;
         for (var i = 0, l = currentPins.length; i < l; ++i) {
@@ -112,6 +117,10 @@
         if (typeof (pintype) === 'undefined') {
             pintype = 'both';
         }
+		
+		while (selectObj[0].lastElementChild) {
+			selectObj[0].removeChild(selectObj[0].lastElementChild);
+		  }
 
         var frag = document.createDocumentFragment(), checkbox;
         inputPinList = inputPinList ? inputPinList : [];
