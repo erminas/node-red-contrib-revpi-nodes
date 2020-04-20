@@ -52,50 +52,59 @@ module.exports = function (url) {
     // input command is allways there to communicate the input back to nodered
     var sendCommandStorage = {
         "input": [function (msg) {
-            msg = msg.split(",");
-            var pin = msg[0], value = msg[1], id;
-            for (id in inputNodes) {
-                if (!inputNodes.hasOwnProperty(id)) continue;
+			data = JSON.parse(msg);
+				
+			if (data !== false)
+			{
+				var pin = data.name, value = data.value, id;
+				for (id in inputNodes) {
+					if (!inputNodes.hasOwnProperty(id)) continue;
 
-                if (inputNodes[id].inputpin === pin){ 
-                    inputNodes[id].send({payload: value, topic: "revpi/single/"+pin});
-                    inputNodes[id].status(getStatusObject("info", "Change - " + pin + " is " + value))
-                }
-            }
-            for (id in multiInputNodes) {
-                if (!multiInputNodes.hasOwnProperty(id)) continue;
+					if (inputNodes[id].inputpin === pin){ 
+						inputNodes[id].send({payload: value, topic: "revpi/single/"+pin});
+						inputNodes[id].status(getStatusObject("info", "Change - " + pin + " is " + value))
+					}
+				}
+				for (id in multiInputNodes) {
+					if (!multiInputNodes.hasOwnProperty(id)) continue;
 
-                var pins = multiInputNodes[id].inputpin.split(","), promises = [];
-                if (pins.indexOf(pin) !== -1) {
-                    promises.push(Promise.resolve(multiInputNodes[id]));
-                    promises.push(Promise.resolve([pin, value]));
+					var pins = multiInputNodes[id].inputpin.split(" "), promises = [];
+					if (pins.indexOf(pin) !== -1) {
+						promises.push(Promise.resolve(multiInputNodes[id]));
+						promises.push(Promise.resolve(data));
 
-                    pins = pins.filter(a => a !== pin).forEach(otherPin => {
-                        promises.push(new Promise((resolve, reject) => {
-                            sendCommandMethod("getpin", function (msgAdditional) {
-                                msgAdditional = msgAdditional.split(",")
-                                if (msgAdditional[1] !== "ERROR_UNKNOWN") {
-                                    resolve(msgAdditional);
-                                } else {
-                                    reject(otherPin);
-                                }
-                            }, [otherPin]);
-                        }));
-                    });
+						pins = pins.filter(a => a !== pin).forEach(otherPin => {
+							promises.push(new Promise((resolve, reject) => {
+								sendCommandMethod("getpin", function (msgAdditional) {
+									dataAdditional = JSON.parse(msgAdditional);
+										
+									if (dataAdditional !== false)
+									{
+										var pinAdditional = dataAdditional.name, valueAdditional = dataAdditional.value;
+										if (valueAdditional !== "ERROR_UNKNOWN") {
+											resolve(dataAdditional);
+										} else {
+											reject(otherPin);
+										}
+									}
+								}, [otherPin]);
+							}));
+						});
 
-                    Promise.all(promises).then(values => {
-                        var node = values.shift();
-                        var payloadJSONObj = {};
-                        values.forEach(valPair => {
-                            payloadJSONObj[valPair[0]] = valPair[1];
-                        });
-                        node.send({payload: payloadJSONObj, topic: "revpi/multi"});
-                        node.status(getStatusObject("info", "Received value(s)"))
-                    }).catch((pin) => {
-                        node.status(getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
-                    });
-                }
-            }
+						Promise.all(promises).then(values => {
+							var node = values.shift();
+							var payloadJSONObj = {};
+							values.forEach(valPair => {
+								payloadJSONObj[valPair.name] = valPair.value;
+							});
+							node.send({payload: payloadJSONObj, topic: "revpi/multi"});
+							node.status(getStatusObject("info", "Received value(s)"))
+						}).catch((pin) => {
+							node.status(getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
+						});
+					}
+				}
+			}
         }]
     };
     var ioList = null;
@@ -103,7 +112,7 @@ module.exports = function (url) {
     function reconnect() {
         isReconnect = true;
         if (connected === false) {
-            if (reconnectAttempts < 2) {
+            if (reconnectAttempts < 10) {
                 reconnectAttempts++;
                 log("Try to reconnect - Attempt: " + reconnectAttempts);
                 connection = new WebSocket(options.url, undefined, undefined);
@@ -120,15 +129,17 @@ module.exports = function (url) {
     var connectToServer = function () {
         log("Connecting to WS Server " + url);
         var that = this;
+		
         connection.addEventListener("error", function (ErrorEvent) {
             var me = that;
             log("ERROR", ErrorEvent.message);
-            if (isReconnect === false && options["canReconnect"]) {
+            /*if (isReconnect === false && options["canReconnect"]) {
                 setTimeout(function () {
                     reconnect.call(me);
                 }, 1000);
-            }
+            }*/
         });
+		
         connection.addEventListener("open", function () {
             connected = true;
             log("Connection to WS Server established!");
@@ -198,9 +209,8 @@ module.exports = function (url) {
         });
 
         connection.addEventListener("close", function () {
-            isReconnect = false;
             connected = false;
-            log("Closed connection to WS Server!");
+            log("Lost connection to WS Server!");
 
             [].concat(
                 Object.values(multiInputNodes),
@@ -210,6 +220,13 @@ module.exports = function (url) {
             ).forEach((node) => {
                 node.status(getStatusObject("error", "Disconnected"));
             });
+			
+			var me = that;
+            if (isReconnect === false && options["canReconnect"]) {
+                setTimeout(function () {
+                    reconnect.call(me);
+                }, 5000);
+            }
 
             /*for (var id in multiInputNodes) {
                 multiInputNodes[id].status(getStatusObject("error", "Disconnected"));
@@ -226,7 +243,7 @@ module.exports = function (url) {
             for (var id in outputNodes) {
                 outputNodes[id].status(getStatusObject("error", "Disconnected"));
             }*/
-        });
+       });
     };
 
     this.sendCommand = sendCommandMethod = function (command, cb, args) {

@@ -59,14 +59,17 @@ module.exports = function (RED) {
 
             var node = this;
             this.server.socket.sendCommand("getpin", function (msg) {
-                msg = msg.split(",")
-                var pin = msg[0];
-                var value = msg[1];
-                if (value === "ERROR_UNKNOWN") {
-                    node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
-                } else {
-                    node.send({payload: value, topic: "revpi/single/"+pin});
-                }
+				data = JSON.parse(msg);
+				
+				if (data !== false)
+				{
+					var pin = data.name, value = data.value;
+					if (value === "ERROR_UNKNOWN") {
+						node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
+					} else {
+						node.send({payload: value, topic: "revpi/single/"+pin});
+					}
+				}
             }, [this.inputpin]);
         }
     }
@@ -77,43 +80,34 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config, undefined);
         this.server = RED.nodes.getNode(config.server);
         this.inputpin = config.inputpin;
-
         if (this.server) {
             this.server.socket.registerMultiInput(this);
             this.status(((this.server.socket.isConnected() === false) ? this.getStatusObject("error", "Disconnected") : this.getStatusObject("success", "Connected")));
 
             var node = this, promises = [];
-            var pinNames = this.inputpin.split(",").forEach(pinName => {
+            var pinNames = this.inputpin.split(" ").forEach(pinName => {
                 promises.push(new Promise((resolve, reject) => {
                     this.server.socket.sendCommand("getpin", function (msg) {
-                        msg = msg.split(",")
-                        if (msg[1] === "ERROR_UNKNOWN") {
-                            reject(msg[0]);
-                        } else {
-                            resolve(msg);
-                        }
+						data = JSON.parse(msg);
+				
+						if (data !== false)
+						{
+							var pin = data.name, value = data.value;
+							if (value === "ERROR_UNKNOWN") {
+								reject(pin);
+							} else {
+								resolve(data);
+							}
+						}
+							
                     }, [pinName]);
                 }));
             });
-
-            /*for (var i in pinNames) {
-
-                promises.push(new Promise((resolve, reject) => {
-                    this.server.socket.sendCommand("getpin", function (msg) {
-                        msg = msg.split(",")
-                        if (msg[1] === "ERROR_UNKNOWN") {
-                            reject(msg[0]);
-                        } else {
-                            resolve(msg);
-                        }
-                    }, [pinNames[i]]);
-                }));
-            }*/
-
+			
             Promise.all(promises).then(values => {
                 var payloadJSONObj = {};
                 values.forEach(valPair => {
-                    payloadJSONObj[valPair[0]] = valPair[1];
+                    payloadJSONObj[valPair.name] = valPair.value;
                 });
                 node.send({payload: payloadJSONObj, topic: "revpi/multi"});
             }).catch(pin => {
@@ -140,15 +134,18 @@ module.exports = function (RED) {
             var pinName = this.getoverwritevalue ? msg.payload : this.inputpin, node = this;
             if (this.server && pinName != null) {
                 this.server.socket.sendCommand("getpin", function (msg) {
-                    msg = msg.split(",")
-                    var pin = msg[0];
-                    var value = msg[1];
-                    if (value === "ERROR_UNKNOWN") {
-                        node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
-                    } else {
-                        node.status(node.getStatusObject("info", "Connected - " + pin + " is " + value));
-                        node.send({payload: value, topic: "revpi/single/"+pin});
-                    }
+					data = JSON.parse(msg);
+				
+					if (data !== false)
+					{
+						var pin = data.name, value = data.value;
+						if (value === "ERROR_UNKNOWN") {
+							node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
+						} else {
+							node.status(node.getStatusObject("info", "Connected - " + pin + " is " + value));
+							node.send({payload: value, topic: "revpi/single/"+pin});
+						}
+					}
                 }, [pinName]);
             }
         })
@@ -172,8 +169,12 @@ module.exports = function (RED) {
             var val = this.overwritevalue ? this.outputvalue : msg.payload;
             var node = this;
             if (this.server && val !== null && typeof (val) !== "object") {
-                this.server.socket.sendCommand("output", function () {
-                    node.status(node.getStatusObject("info", "Change - " + node.outputpin + " is " + val));
+                this.server.socket.sendCommand("output", function (msgAdditional) {
+					if (msgAdditional !== "ERROR_UNKNOWN") {
+						node.status(node.getStatusObject("info", "Change - " + node.outputpin + " is " + val));
+					} else {
+						node.status(node.getStatusObject("info", "Error setting " + node.outputpin + " to " + val));
+					}
                 }, [this.outputpin, val]);
             }
         });
@@ -182,7 +183,7 @@ module.exports = function (RED) {
     RED.nodes.registerType("revpi-output", RevpiOutput);
 
 
-    RED.httpAdmin.get("/revpi-server-list-pins/:host/:port", RED.auth.needsPermission("revpi-server.read"), function (req, res) {
+    RED.httpAdmin.get("/revpi-server-list-pins/:host/:port/:force_update", RED.auth.needsPermission("revpi-server.read"), function (req, res) {
         var result = res;
         if (req.params.host && req.params.port && (req.params.host + "").length > 1) {
             var socket = getWebsocket(req.params.host, req.params.port);
@@ -199,7 +200,7 @@ module.exports = function (RED) {
                 if (isTemp) {
                     removeWebsocket(req.params.host, req.params.port);
                 }
-            });
+            }, [req.params.force_update]);
         } else {
             result.json(false);
         }

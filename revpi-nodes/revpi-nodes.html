@@ -47,11 +47,12 @@
 
     function getPins(host, port, done) {
         if (host && port) {
-            jQuery.get('revpi-server-list-pins/' + host + '/' + port, function (text) {
-                text = JSON.parse(text);
+            jQuery.get('revpi-server-list-pins/' + host + '/' + port + '/' + (pinToHost[host + ':' + port]===null).toString(), function (text) {
+				text = JSON.parse(text);
+				
                 if (text === false) {
                     pinToHost[host + ':' + port] = null;
-                } else {
+                } else if (!jQuery.isEmptyObject(text)){
                     pinToHost[host + ':' + port] = text;
                     pinToHost[host + ':' + port].inputs = pinToHost[host + ':' + port].inputs.sort(function (a, b) {
                         return a.name.localeCompare(b.name)
@@ -68,70 +69,76 @@
         }
     }
 
+	
     function revPiAddOptions(server, select, input, pintype) {
         var host = server.host;
         var port = server.port;
-        var pins = pinToHost[host + ':' + port];
         if (typeof (pins) === 'undefined' || pins === null) {
             getPins(server.host, server.port, function () {
-                revPiAddOptions(server, select, input, pintype);
-            });
-            return;
-        }
-        var selectObj = jQuery(select);
-        if (typeof (pintype) === 'undefined') {
-            pintype = 'both';
-        }
-        var currentPins = pins[pintype];
-		
-		
-		while (selectObj[0].lastElementChild) {
-			selectObj[0].removeChild(selectObj[0].lastElementChild);
-		  }
+				var pins = pinToHost[host + ':' + port];
+				
+				var selectObj = jQuery(select);
+				if (typeof (pintype) === 'undefined') {
+					pintype = 'both';
+				}
+				var currentPins = pins[pintype];
 
-        var currentSelect = jQuery(input).val(), frag = document.createDocumentFragment(), opt = null;
-        for (var i = 0, l = currentPins.length; i < l; ++i) {
-            opt = document.createElement('option');
-            opt.innerHTML = "PIN: " + currentPins[i].name;
-            opt.value = currentPins[i].name;
-            if (currentPins[i].name === currentSelect) {
-                opt.selected = true;
-            }
-            frag.appendChild(opt);
+                currentPins.sort((a, b) => a.name.localeCompare(b.name, 'en', {
+                    numeric: true,
+                    sensitivity: 'base'
+                }));
+				
+				while (selectObj[0].lastElementChild) {
+					selectObj[0].removeChild(selectObj[0].lastElementChild);
+				  }
+
+				var currentSelect = jQuery(input).val(), frag = document.createDocumentFragment(), opt = null;
+				for (var i = 0, l = currentPins.length; i < l; ++i) {
+					opt = document.createElement('option');
+					opt.innerHTML = "PIN: " + currentPins[i].name;
+					opt.value = currentPins[i].name;
+					if (currentPins[i].name === currentSelect) {
+						opt.selected = true;
+					}
+					frag.appendChild(opt);
+				}
+				selectObj[0].appendChild(frag);
+			
+            });
         }
-        selectObj[0].appendChild(frag);
+        
     }
 
 
     function revPiAddMultipleOptions(server, select, input, pintype, inputPinList) {
         var host = server.host;
         var port = server.port;
-        var pins = pinToHost[host + ':' + port];
         if (typeof (pins) === 'undefined' || pins === null) {
             getPins(server.host, server.port, function () {
-                revPiAddMultipleOptions(server, select, input, pintype, inputPinList);
-            });
-            return;
-        }
-        var selectObj = jQuery(select);
-        if (typeof (pintype) === 'undefined') {
-            pintype = 'both';
-        }
-		
-		while (selectObj[0].lastElementChild) {
-			selectObj[0].removeChild(selectObj[0].lastElementChild);
-		  }
+				var pins = pinToHost[host + ':' + port];
+				var selectObj = jQuery(select);
+				if (typeof (pintype) === 'undefined') {
+					pintype = 'both';
+				}
+				
+				while (selectObj[0].lastElementChild) {
+					selectObj[0].removeChild(selectObj[0].lastElementChild);
+				  }
 
-        var frag = document.createDocumentFragment(), checkbox;
-        inputPinList = inputPinList ? inputPinList : [];
-        [...pins[pintype]].sort((a, b) => a.name.localeCompare(b.name, 'en', {
-            numeric: true,
-            sensitivity: 'base'
-        })).forEach(pin => {
-            checkbox = jQuery('<label class="checkbox"><input type="checkbox" name="pins" value="' + pin.name + '"' + ((inputPinList.indexOf(pin.name) !== -1) ? ' checked' : '') + ' /> ' + pin.name + '</label>');
-            frag.appendChild(checkbox[0]);
-        });
-        selectObj[0].appendChild(frag);
+				var frag = document.createDocumentFragment(), checkbox;
+				inputPinList = inputPinList ? inputPinList : [];
+				[...pins[pintype]].sort((a, b) => a.name.localeCompare(b.name, 'en', {
+					numeric: true,
+					sensitivity: 'base'
+				})).forEach(pin => {
+					checkbox = jQuery('<label class="checkbox"><input type="checkbox" name="pins" value="' + pin.name + '"' + ((inputPinList.indexOf(pin.name) !== -1) ? ' checked' : '') + ' /> ' + pin.name + '</label>');
+					frag.appendChild(checkbox[0]);
+				});
+				selectObj[0].appendChild(frag);
+				
+            });
+        }
+        
     }
 
 </script>
@@ -210,7 +217,6 @@
                     revPiAddOptions(RED.nodes.node(jQuery(this).val()), "#node-input-inputpin-fake", "#node-input-inputpin", "inputs");
                 }
             });
-
         },
         oneditsave: function () {
             jQuery('#node-input-inputpin').val(jQuery('#node-input-inputpin-fake').val());
@@ -251,14 +257,17 @@
         'outputs': 1,
         'icon': "revpi.png",
         'label': function () {
+		
+			var labelInputpins = this.inputpin.replace(/ /g,", ");
+				
             if (this.inputpin !== "") {
                 const maxLabelLength = 48;
                 let cut = maxLabelLength;
                 if (this.inputpin.length < maxLabelLength) {
-                    return "Pins:" + this.inputpin;
+                    return "Pins:" + labelInputpins;
                 } else if (this.inputpin.length >= maxLabelLength) {
                     for (let i = 0; i < this.inputpin.length; i++) {
-                        if (this.inputpin[i] === ",") {
+                        if (this.inputpin[i] === " ") {
                             if (i < maxLabelLength) {
                                 cut = i;
                             } else if (i > maxLabelLength) {
@@ -266,7 +275,7 @@
                             }
                         }
                     }
-                    return "Pins:" + this.inputpin.slice(0, cut) + "...";
+                    return "Pins:" + labelInputpins.slice(0, cut) + "...";
                 } 
             }else {
                     return "revpi-multiple-input";
@@ -287,7 +296,9 @@
             jQuery('#revpi-multiple-input-wrapper input[name="pins"]:checked').each(function () {
                 pinsList.push(this.value)
             });
-            jQuery('#node-input-inputpin').val(this.inputPinList = pinsList);
+
+            jQuery('#node-input-inputpin').val(this.inputPinList = pinsList.join(" "));
+
 
         }
     });
