@@ -26,7 +26,11 @@
 	
 	"server": {
 	  "host" : "Host",
-      "port": "Port"
+      "port": "Port",
+	  "user": "Benutzer",
+	  "password": "Passwort",
+    "rejectUnauthorized": "Striktes SSL",
+    "ca": "Root-Zertifikat Pfad (CA)"
     }
 	
   }
