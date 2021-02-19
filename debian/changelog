@@ -1,3 +1,17 @@
+node-red-contrib-revpi-nodes (1.0.8) stable; urgency=medium
+
+  * added manual setting for topics https://github.com/erminas/node-red-contrib-revpi-nodes/issues/5
+  * fix for injection node https://github.com/erminas/node-red-contrib-revpi-nodes/issues/8
+  * improvements to node documentation
+
+ -- Kunbus <admin@kunbus.de>  Fri, 19 Feb 2021 13:47:32 +0200
+node-red-contrib-revpi-nodes (1.0.7) stable; urgency=medium
+
+  * added wss support inclusive
+  * added basic user authentication
+  * more robust reconnects
+
+ -- Kunbus <admin@kunbus.de>  Tue, 28 Jan 2021 18:01:00 +0200
 node-red-contrib-revpi-nodes (1.0.6-1) stable; urgency=medium
 
   * Initial release

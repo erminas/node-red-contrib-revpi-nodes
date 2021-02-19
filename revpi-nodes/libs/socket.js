@@ -87,7 +87,9 @@ module.exports = function (url, config) {
 						if (!inputNodes.hasOwnProperty(id)) continue;
 
 						if (inputNodes[id].inputpin === pin){ 
-							inputNodes[id].send({payload: value, topic: "revpi/single/"+pin});
+							var setTopic = (inputNodes[id].topic == null || inputNodes[id].topic == "") ? "revpi/single/"+pin : inputNodes[id].topic;
+						
+							inputNodes[id].send({payload: value, topic: setTopic});
 							inputNodes[id].status(getStatusObject("info", "Change - " + pin + " is " + value))
 						}
 					}
@@ -128,7 +130,10 @@ module.exports = function (url, config) {
 								values.forEach(valPair => {
 									payloadJSONObj[valPair.name] = valPair.value;
 								});
-								node.send({payload: payloadJSONObj, topic: "revpi/multi"});
+								
+								var setTopic = (node.topic == null || node.topic == "") ? "revpi/multi" : node.topic;
+								
+								node.send({payload: payloadJSONObj, topic: setTopic});
 								node.status(getStatusObject("info", "Received value(s)"))
 							}).catch((msg) => {
 								for (id in inputNodes) {

@@ -88,7 +88,8 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config, undefined);
         this.server = RED.nodes.getNode(config.server);
         this.inputpin = config.inputpin;
-
+        this.topic = config.topic;
+		
         if (this.server) {
 			this.server.socket.registerInput(this);
             var node = this;
@@ -109,7 +110,9 @@ module.exports = function (RED) {
 						}else if (error === "ERROR_PIN") {
 							node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
 						}else{
-							node.send({payload: value, topic: "revpi/single/"+pin});
+							var setTopic = (this.topic == null || this.topic == "") ? "revpi/single/"+pin : this.topic;
+							
+							node.send({payload: value, topic: setTopic});
 						}
 							
 						
@@ -125,6 +128,8 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config, undefined);
         this.server = RED.nodes.getNode(config.server);
         this.inputpin = config.inputpin;
+        this.topic = config.topic;
+		
         if (this.server) {
             this.server.socket.registerMultiInput(this);
 
@@ -161,7 +166,10 @@ module.exports = function (RED) {
 					values.forEach(valPair => {
 						payloadJSONObj[valPair.name] = valPair.value;
 					});
-					node.send({payload: payloadJSONObj, topic: "revpi/multi"});
+					
+					var setTopic = (node.topic == null || node.topic == "") ? "revpi/multi" : node.topic;
+					
+					node.send({payload: payloadJSONObj, topic: setTopic});
 				}).catch(msg => {
 					node.status(node.getStatusObject("error", msg));
 				});
@@ -176,6 +184,7 @@ module.exports = function (RED) {
         this.server = RED.nodes.getNode(config.server);
         this.inputpin = config.inputpin;
         this.getoverwritevalue = config.getoverwritevalue;
+        this.topic = config.topic;
 
         if (this.server) {
             this.server.socket.registerGetpin(this);
@@ -202,7 +211,9 @@ module.exports = function (RED) {
 							node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
 						} else {
 							node.status(node.getStatusObject("info", "Connected - " + pin + " is " + value));
-							node.send({payload: value, topic: "revpi/single/"+pin});
+							
+							var setTopic = (node.topic == null || node.topic == "") ? "revpi/single/"+pin : node.topic;
+							node.send({payload: value, topic: setTopic});
 							
 						}
 						

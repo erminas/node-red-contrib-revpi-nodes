@@ -7,7 +7,7 @@
 -->
 
 <style>
-    .hidden {
+    .revpi-hidden {
         display: none !important;
     }
 
@@ -286,6 +286,10 @@
                 value: "",
                 exportable: true,
                 required: true
+            },
+            topic: {
+                value: "",
+                exportable: true
             }
         },
         inputs: 0,
@@ -324,10 +328,13 @@
     </div>
 	<div class="form-row">
         <label for="node-input-inputpin"><i class="fa fa-circle"></i> <span data-i18n="revpiNodes.single-input.input-pin"></label>
-		<input type="text" id="node-input-inputpin" class="hidden">
+		<input type="text" id="node-input-inputpin" class="revpi-hidden">
 		<select id="node-input-inputpin-fake"></select>
     </div>
-
+	<div class="form-row">
+		<label for="node-input-topic"><i class="fa fa-tasks"></i> <span data-i18n="revpiNodes.single-input.topic"></label>
+		<input type="text" id="node-input-topic">
+	</div>
 
 </script>
 
@@ -344,6 +351,10 @@
                 value: "",
                 exportable: true,
                 required: true
+            },
+            topic: {
+                value: "",
+                exportable: true
             }
         },
         inputs: 0,
@@ -411,10 +422,14 @@
 
 	<div class="form-row" style="min-width: 540px">
         <label for="node-input-inputpin" style="vertical-align: top;"><i class="fa fa-circle"></i> <span data-i18n="revpiNodes.multi-input.input-pins"></label>
-        <input type="text" id="node-input-inputpin" class="hidden">
+        <input type="text" id="node-input-inputpin" class="revpi-hidden">
         <div id="revpi-multiple-input-wrapper"></div>
     </div>
 
+	<div class="form-row">
+		<label for="node-input-topic"><i class="fa fa-tasks"></i> <span data-i18n="revpiNodes.multi-input.topic"></label>
+		<input type="text" id="node-input-topic">
+	</div>
 
 </script>
 
@@ -445,6 +460,10 @@
                     
                     return false;
                 }
+            },
+            topic: {
+                value: "",
+                exportable: true
             }
             
         },
@@ -505,11 +524,15 @@
 	<div class="form-row" id="selectPin">
         <label for="node-input-inputpin"><i class="fa fa-circle"></i> <span data-i18n="revpiNodes.getpin.input-pin"></label>
         <div class="row-wrapper">
-            <input type="text" id="node-input-inputpin" class="hidden">
+            <input type="text" id="node-input-inputpin" class="revpi-hidden">
             <select id="node-input-inputpin-fake"></select>
 		</div>
     </div>
 	
+	<div class="form-row">
+		<label for="node-input-topic"><i class="fa fa-tasks"></i> <span data-i18n="revpiNodes.getpin.topic"></label>
+		<input type="text" id="node-input-topic">
+	</div>
 
 
 </script>
@@ -577,7 +600,7 @@
     </div>
 	<div class="form-row">
         <label for="node-input-outputpin"><i class="fa fa-circle"></i> <span data-i18n="revpiNodes.output.outputPin"></span></label>
-		<input type="text" id="node-input-outputpin" class="hidden">
+		<input type="text" id="node-input-outputpin" class="revpi-hidden">
 		<select id="node-input-outputpin-fake"></select>
     </div>
 	<div class="form-row">
