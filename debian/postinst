@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -d "/home/pi/.node-red/node_modules/node-red-contrib-revpi-nodes" ]; then
+	echo "Warning: Removing locally installed module under /home/pi/.node-red/node_modules/node-red-contrib-revpi-nodes"
+	rm -r /home/pi/.node-red/node_modules/node-red-contrib-revpi-nodes
+fi
+
+cd /usr/lib/node_modules/node-red-contrib-revpi-nodes
+npm install
