@@ -225,7 +225,7 @@ module.exports = function (url, config) {
 				if(cb){
 					cb();
 				}
-			}, [pjson.version,options.user,options.password,options.ca]);
+			}, [pjson.version.slice(0, pjson.version.indexOf("-")),options.user,options.password,options.ca]);
 			
         });
 
