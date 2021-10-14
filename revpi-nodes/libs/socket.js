@@ -22,8 +22,10 @@ module.exports = function (url, config) {
 		user: config.user,
 		password: config.password,
         rejectUnauthorized: config.rejectUnauthorized,
-        canReconnect: true
+		getAutomaticUpdates : config.getAutomaticUpdates,
+        canReconnect: config.canReconnect || false
     };
+	
 	
 	if(config.rejectUnauthorized && config.ca){
 		try {
@@ -35,12 +37,13 @@ module.exports = function (url, config) {
 	}
 
 	var protocols = {rejectUnauthorized: options.rejectUnauthorized};
+	var webSocketOptions = { perMessageDeflate: false};
 	
 	if(options.ca){
 		protocols.ca=options.ca;
 	}
 
-    var connection = new WebSocket(options.url,protocols, undefined);
+    var connection = new WebSocket(options.url,protocols, webSocketOptions);
     var connected = false;
 	
 	const loginStates = {"ERROR_AUTH":0,"SUCCESS_AUTH":1, "ERROR_UNSUPPORTED_VERSION":2};
@@ -73,12 +76,25 @@ module.exports = function (url, config) {
         }
         return statusObject;
     };
+	
+	
+	var setAllNodesStatus = function (status, text) {
+		[].concat(
+			Object.values(multiInputNodes),
+			Object.values(inputNodes),
+			Object.values(getpinNodes),
+			Object.values(outputNodes)
+		).forEach((node) => {
+			node.status(getStatusObject(status, text));
+		});
+		
+	};
 
     // input command is allways there to communicate the input back to nodered
     var sendCommandStorage = {
         "input": [function (msg) {
 			data = JSON.parse(msg);
-            
+			
 			if (data !== false)
 			{
 				if (data.error !== "ERROR_AUTH" && data.error !== "ERROR_UNKNOWN" ) {
@@ -87,8 +103,10 @@ module.exports = function (url, config) {
 						if (!inputNodes.hasOwnProperty(id)) continue;
 
 						if (inputNodes[id].inputpin === pin){ 
-							inputNodes[id].send({payload: value, topic: "revpi/single/"+pin});
-							inputNodes[id].status(getStatusObject("info", "Change - " + pin + " is " + value))
+							var setTopic = (inputNodes[id].topic == null || inputNodes[id].topic == "") ? "revpi/single/"+pin : inputNodes[id].topic;
+						
+							inputNodes[id].send({payload: value, topic: setTopic});
+							inputNodes[id].status(getStatusObject("info", "Change - " + pin + " is " + value));
 						}
 					}
 					for (id in multiInputNodes) {
@@ -99,6 +117,7 @@ module.exports = function (url, config) {
 							promises.push(Promise.resolve(multiInputNodes[id]));
 							promises.push(Promise.resolve(data));
 
+								
 							pins = pins.filter(a => a !== pin).forEach(otherPin => {
 								promises.push(new Promise((resolve, reject) => {
 									sendCommandMethod("getpin", function (msgAdditional) {
@@ -128,8 +147,11 @@ module.exports = function (url, config) {
 								values.forEach(valPair => {
 									payloadJSONObj[valPair.name] = valPair.value;
 								});
-								node.send({payload: payloadJSONObj, topic: "revpi/multi"});
-								node.status(getStatusObject("info", "Received value(s)"))
+								
+								var setTopic = (node.topic == null || node.topic == "") ? "revpi/multi" : node.topic;
+								
+								node.send({payload: payloadJSONObj, topic: setTopic});
+								node.status(getStatusObject("info", "Received value(s)"));
 							}).catch((msg) => {
 								for (id in inputNodes) {
 									if (!inputNodes.hasOwnProperty(id)) continue;
@@ -145,10 +167,9 @@ module.exports = function (url, config) {
 			}
         }]
     };
-    var ioList = null;
 
-    function reconnect() {
-		if(options["canReconnect"]){
+    var reconnect = function() {
+		if(options.canReconnect){
 			isReconnect = true;
 			if (connected === false) {
 				if (reconnectAttempts < 10) {
@@ -161,8 +182,10 @@ module.exports = function (url, config) {
 						protocols.ca=options.ca;
 					}
 					
-					connection = new WebSocket(options.url, protocols, undefined);
-					connectToServer.call(this);
+					setAllNodesStatus("error", "Reconnecting...");
+					
+					connection = new WebSocket(options.url, protocols, webSocketOptions);
+					connectToServer();
 					isReconnect = false;
 				} else {
 					log("Stopped reconnecting. Max Reconnections reached!");
@@ -177,31 +200,24 @@ module.exports = function (url, config) {
         log("Connecting to WS Server " + url);
         var that = this;
 		
-        connection.addEventListener("error", function (ErrorEvent) {
+		var canReconnect = options.canReconnect;
+		
+        connection.onerror = function (ErrorEvent) {
             var me = that;
-            log("ERROR", "Connection to server error: " +ErrorEvent.message);
+            log("ERROR", "Connection to server "+url+" error: " +ErrorEvent.message);
 			
 			if(cb){
 				cb();
 			}
-        });
+        };
 		
-        connection.addEventListener("open", function () {
-            connected = true;
-            log("Connection to WS Server established!");
+        connection.onopen = function (data) {
+			connected = true;
+            log("Connection to WS Server "+url+" established!");
             reconnectAttempts = 0;
             isReconnect = false;
+            
 
-            var list = sendCommandPool;
-            sendCommandPool = {};
-            for (var command in list) {
-				
-                for (var i = 0, l = list[command].length; i < l; ++i) {
-                    sendCommandStorage[command].push(list[command][i]);
-                }
-                connection.send(command, undefined, undefined);
-            }
-			
 			sendCommandMethod("login", function (msg) {
 				data = JSON.parse(msg);
             
@@ -210,82 +226,91 @@ module.exports = function (url, config) {
 					if (data.error === "ERROR_AUTH") {
 						log("error", "Error not authorized by server!");
 						loginStatus=loginStates.ERROR_AUTH;
-					    setAllNodesStatusMethod("error", "NOT AUTHORIZED");
+					    setAllNodesStatus("error", "NOT AUTHORIZED");
 					}else if(data.error === "ERROR_UNSUPPORTED_VERSION") {
-						log("info", "Unsupported server version!");
+						log("error", "Unsupported server version!");
 						loginStatus=loginStates.ERROR_UNSUPPORTED_VERSION;
-						setAllNodesStatusMethod("error", "UNSUPPORTED SERVER");
+						setAllNodesStatus("error", "UNSUPPORTED SERVER");
 					}else{
 						log("info", "Authorized by server!");
 						loginStatus=loginStates.SUCCESS_AUTH;
-                        setAllNodesStatusMethod("success", "Connected");
+                        setAllNodesStatus("success", "Connected");
+						
+						var list = sendCommandPool;
+						sendCommandPool = {};
+						for (var command in list) {
+							
+							for (var i = 0, l = list[command].length; i < l; ++i) {
+								sendCommandStorage[command].push(list[command][i]);
+							}
+							connection.send(command, undefined, undefined);
+						}
+						
 					}
 				}
 				
 				if(cb){
 					cb();
 				}
-			}, [pjson.version.slice(0, pjson.version.indexOf("-")),options.user,options.password,options.ca]);
+			}, [pjson.version,options.user,options.password,options.getAutomaticUpdates]);
 			
-        });
+        };
 
-        connection.addEventListener("message", function (data) {
+        connection.onmessage = function (data) {
             var msg = data.data;
             var msgSplit = msg.split(";");
             var fullCommand = msgSplit.shift();
+			
 			
             var newMsg = msgSplit.join(";");
             if (sendCommandStorage[fullCommand]) {
                 sendCommandStorage[fullCommand].forEach((callBack) => {
                     callBack.apply({}, (newMsg + "#" + fullCommand).split("#"));
                 })
-                /*for (var i in sendCommandStorage[fullCommand]) {
-                    sendCommandStorage[fullCommand][i](newMsg, command, args);
-                }*/
                 if (fullCommand !== "input") {
                     sendCommandStorage[fullCommand] = [];
                 }
             }
-        });
-
-        connection.addEventListener("close", function () {
+        };
+		
+        connection.onclose = function () {
             connected = false;
             log("Lost connection to WS Server!");
 
-			setAllNodesStatusMethod("error", "Disconnected");
+			setAllNodesStatus("error", "Disconnected");
 			
-			var me = that;
-            if (isReconnect === false && options["canReconnect"]) {
+            if (isReconnect === false && canReconnect) {
                 setTimeout(function () {
-                    reconnect.call(me);
+                    reconnect();
                 }, 5000);
             }
-       });
+       };
     };
+	
 
     this.sendCommand = sendCommandMethod = function (command, cb, args) {
-        if (commandList.indexOf(command) !== -1 || command === "") {
-            if (command !== "") {
-                command = command + "#" + JSON.stringify(args);
-            }
-            if (typeof (sendCommandStorage[command]) == "undefined") {
-                sendCommandStorage[command] = [];
-            }
-            if (connected === false) {
-                if (typeof (sendCommandPool[command]) === "undefined") {
-                    sendCommandPool[command] = [];
-                }
-                sendCommandPool[command].push(cb);
-            } else {
-                sendCommandStorage[command].push(cb);
-                connection.send(command);
-            }
-        }
+		if (commandList.indexOf(command) !== -1 || command === "") {
+			if (command !== "") {
+				command = command + "#" + JSON.stringify(args);
+			}
+			if (typeof (sendCommandStorage[command]) == "undefined") {
+				sendCommandStorage[command] = [];
+			}
+			if (connected === false) {
+				if (typeof (sendCommandPool[command]) === "undefined") {
+					sendCommandPool[command] = [];
+				}
+				sendCommandPool[command].push(cb);
+			} else {
+				sendCommandStorage[command].push(cb);
+				connection.send(command);
+			}
+		}
     };
 
     this.connect = function (cb) {
         if (connected === false) {
-            connectToServer.call(this,cb);
+            connectToServer(cb);
         }
         return this;
     };
@@ -322,51 +347,37 @@ module.exports = function (url, config) {
         return this;
     };
 
-    this.getIOList = function () {
-        return ioList;
-    };
-
     this.registerInput = function (node) {
-        node.ioList = this.getIOList();
         node.getStatusObject = getStatusObject;
         inputNodes[node.id] = node;
+		node.status(getStatusObject("error", "Connecting..."));
+		
     };
 
     this.registerMultiInput = function (node) {
-        node.ioList = this.getIOList();
         node.getStatusObject = getStatusObject;
         multiInputNodes[node.id] = node;
+		node.status(getStatusObject("error", "Connecting..."));
     };
 
     this.registerGetpin = function (node) {
-        node.ioList = this.getIOList();
         node.getStatusObject = getStatusObject;
         getpinNodes[node.id] = node;
+		node.status(getStatusObject("error", "Connecting..."));
     };
 
     this.registerOutput = function (node) {
         node.getStatusObject = getStatusObject;
         outputNodes[node.id] = node;
+		node.status(getStatusObject("error", "Connecting..."));
     };
 	
-	this.setAllNodesStatus = setAllNodesStatusMethod = function (status, text) {
-		[].concat(
-			Object.values(multiInputNodes),
-			Object.values(inputNodes),
-			Object.values(getpinNodes),
-			Object.values(outputNodes)
-		).forEach((node) => {
-			node.status(getStatusObject(status, text));
-		});
-	};
+	
 
-    this.kill = killMethod = function (done) {
-		options["canReconnect"] = false;
+    this.kill = killMethod = function () {
+		options.canReconnect = false;
         connection.onclose = function () {}; // disable onclose handler first
-        connection.close(undefined, undefined);
-        if (done) {
-            setTimeout(done, 1);
-        }
+        connection.close();
     };
 
 };

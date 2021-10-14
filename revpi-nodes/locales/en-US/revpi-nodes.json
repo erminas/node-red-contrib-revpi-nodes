@@ -3,18 +3,21 @@
   
 	"single-input": {
 	  "server" : "Server",
-      "input-pin": "Input Pin"
+      "input-pin": "Input Pin",
+	  "topic": "Topic"
     },
 	
 	"multi-input": {
 	  "server" : "Server",
-      "input-pins": "Input Pins"
+      "input-pins": "Input Pins",
+	  "topic": "Topic"
     },
 	
     "getpin": {
 	  "server" : "Server",
       "getoverwritevalueLabel": "Take pin name from payload",
-	  "input-pin": "Input Pin"
+	  "input-pin": "Input Pin",
+	  "topic": "Topic"
     },
 	
     "output": {

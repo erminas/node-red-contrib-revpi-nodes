@@ -8,12 +8,14 @@
 
 <script type="text/x-red" data-help-name="revpi-output">
 <p>Der Output-Node verbindet sich mit einem Revolution Pi und leitet über den Input Port ankommende Werte an einen RevPi Output Pin weiter. </p>
-<h2>Server</h2>
-<p>Adresse &#252ber die Node Red mit dem RevPi kommuniziert. </p>
+
+<h2><i class="fa fa-random"></i> Server</h2>
+<p>Adresse &#252ber welche der Knoten mit dem RevPi Server kommuniziert. </p>
+
 <h2>Input</h2>
     <dl class="message-properties">
-        <dt>Input Port
-            <span class="property-type">string</span>
+        <dt><i class="fa fa-circle"></i> Input Port
+            <span class="property-type">String</span>
         </dt>
         <dd>Wert auf den der RevPi Output Pin gesetzt wird.</dd>
     </dl>
@@ -23,8 +25,8 @@
         <dt><i class="fa fa-circle"></i> Pin
             <span class="property-type">Pin-Name</span>
         </dt>
-        <dd> Name des Output Pins 
-		Zur Auswahl stehen alle Input Pins die im Pictory des RevPis definiert wurden. 
+        <dd> Name des Output Pins. <br> 
+		Zur Auswahl stehen alle Output Pins die in PiCtory des RevPis definiert wurden. 
 		Die Pin-Namen entsprechen der Namen die im Value-Editor des Moduls vergeben wurden.</dd>
 
     </dl>
@@ -46,24 +48,33 @@
 
 
 <script type="text/x-red" data-help-name="revpi-multiple-input">
-<p>Der Multiple-Input-Node verbindet sich mit einem Revolution Pi und leitet mehere RevPi Input Werte &#252ber den Output Port als msg.payload weiter.</p>
+<p>Der Multiple-Input-Node verbindet sich mit einem Revolution Pi und leitet mehrere RevPi Input Werte &#252ber den Output Port als msg.payload weiter.</p>
 <p>Getriggert wird dieser Knoten durch Werte&#228nderungen an den RevPi Input Pins. </p>
-<h2>RevPi Input</h2>
+
+<h2><i class="fa fa-random"></i> Server</h2>
+<p>Adresse &#252ber welche der Knoten mit dem RevPi Server kommuniziert. </p>
+
+<h2>RevPi Server Input</h2>
     <dl class="message-properties">
         <dt><i class="fa fa-circle"></i> Input Pins
             <span class="property-type">Pin-Name</span>
         </dt>
-        <dd> Zur Auswahl stehen alle Input Pins die im Pictory des RevPis definiert wurden. 
-		Die Pin-Namen entsprechen der Namen die im Value-Editor des Moduls vergeben wurden. </dd>
+        <dd> Zur Auswahl stehen alle Input Pins die in PiCtory des RevPis definiert wurden. 
+		Die Pin-Namen entsprechen der Namen die im Value-Editor des Moduls vergeben wurden.</dd>
     </dl>
     
 <h2>Output</h2>
   <dl class="message-properties">
-          <dt>Output Port
+          <dt><i class="fa fa-circle"></i> Output Port
               <span class="property-type">JSON</span>
           </dt>
     <p>Als Output wird ein JSON konformer String generiert. Enthalten in diesem String sind die ausgew&#228hlten Pin-Namen und deren aktuellen Werte.</p>    
   </dl>
+
+<h2><i class="fa fa-tasks"></i> Topic</h2>
+	<p>Manuelles Setzen des msg.topic als String. Bei leeren Inhalt wird der Standard revpi/multi genutzt.</p>
+
+
 <h2>Details</h2>
   <p>Der Multiple-Input-Node kann einen oder mehrere Werte von den Input Pins des RevPi auslesen. 
   Die Werte werden initial nach einem Deploy am Output Port des Knotens ausgegeben. 
@@ -74,25 +85,32 @@
 </script>
 
 
-
 <script type="text/x-red" data-help-name="revpi-single-input">
 <p>Der Single-Input-Node verbindet sich mit einem Revolution Pi und leitet einzelne RevPi Input Werte &#252ber den Output Port als msg.payload weiter.</p>
 <p>Getriggert wird dieser Knoten durch Werte&#228nderungen am gew&#228hlten RevPi Input Pin. </p>
-<h2>RevPi Input</h2>
+
+<h2><i class="fa fa-random"></i> Server</h2>
+<p>Adresse &#252ber welche der Knoten mit dem RevPi Server kommuniziert. </p>
+
+<h2>RevPi Server Input</h2>
     <dl class="message-properties">
         <dt><i class="fa fa-circle"></i> Input Pin
             <span class="property-type">Pin-Name</span>
         </dt>
-        <dd> Zur Auswahl stehen alle Input Pins die im Pictory des RevPis definiert wurden. Die Pin-Namen entsprechen der Namen die im Value-Editor des Moduls vergeben wurden.</dd>
+        <dd> Zur Auswahl stehen alle Input Pins die im PiCtory des RevPis definiert wurden. Die Pin-Namen entsprechen der Namen die im Value-Editor des Moduls vergeben wurden.</dd>
     </dl>
     
 <h2>Output</h2>
   <dl class="message-properties">
-          <dt>Output Port
+          <dt><i class="fa fa-circle"></i> Output Port
               <span class="property-type">String</span>
           </dt>
     <p>F&#252r den ausgew&#228hlten RevPi Input Pin wird der Wert in Form eines Strings ausgegeben. </p>
   </dl>
+  
+<h2><i class="fa fa-tasks"></i> Topic</h2>
+	<p>Manuelles Setzen des msg.topic als String. Bei leeren Inhalt wird der Standard revpi/single/Pin-Name genutzt.</p>
+  
 <h2>Details</h2>
   <p>Der Single-Input-Node kann einen Wert von einem Input Pin des RevPi auslesen. 
   Die Werte werden initial nach einem Deploy am Output Port des Knotens ausgegeben. 
@@ -106,31 +124,41 @@
 <script type="text/x-red" data-help-name="revpi-getpin">
 <p>Der Getpin-Node verbindet sich mit einem Revolution Pi und leitet einzelne RevPi Input Werte &#252ber den Output Port als msg.payload weiter. </p>
 <p>Getriggert wird dieser Knoten durch den Input Port des Knotens. Optional kann hier&#252ber auch die Auswahl des auszulesenden RevPi Pins erfolgen.</p>
+
+<h2><i class="fa fa-random"></i> Server</h2>
+<p>Adresse &#252ber welche der Knoten mit dem RevPi Server kommuniziert. </p>
+
 <h2>Input</h2>
     <dl class="message-properties">
         <dt><i class="fa fa-circle"></i> Input Pin
-            <span class="property-type">Pin-Name</span>
+            <span class="property-type">String</span>
         </dt>
-        <dd>Optional der Name des RevPi Pins als String der ausgelesen werden soll.</dd>
+        <dd>Optional der Name des RevPi Pins als String der ausgelesen werden soll. <br>
+		Zur Auswahl stehen alle Input/Output Pins die im PiCtory des RevPis definiert wurden. Die Pin-Namen entsprechen der Namen die im Value-Editor des Moduls vergeben wurden.</dd>
     </dl>
     
 <h2>Output</h2>
   <dl class="message-properties">
-          <dt>Output Port
-              <span class="property-type">string</span>
+          <dt><i class="fa fa-circle"></i> Output Port
+              <span class="property-type">String</span>
           </dt>
     <p>Der Wert des ausgelesenen RevPi Pins als String.</p>
 
   </dl>
   
-<h2>RevPi Input</h2>
+<h2>RevPi Server Input</h2>
     <dl class="message-properties">
-        <dt>Input Pin
-            <span class="property-type">Port</span>
+        <dt><i class="fa fa-circle"></i> Input Pin
+            <span class="property-type">Pin-Name</span>
         </dt>
         <dd> Wird "Pin Namen aus Payload nehmen" ausgew&#228hlt, wird &#252ber den eingehenden String vom Input Port des Knotens der RevPi Input Pin gew&#228hlt.
 		Der Name muss dann einem der Pin-Namen entsprechen, die im Pictory des RevPis definiert wurden. </dd>
     </dl>
+
+<h2><i class="fa fa-tasks"></i> Topic</h2>
+	<p>Manuelles Setzen des msg.topic als String. Bei leeren Inhalt wird der Standard revpi/single/Pin-Name genutzt.</p>
+
+	
 <h2>Details</h2>
   <p>Der Getpin-Node kann einen Wert von einem Pins des RevPi auslesen. 
    Ausgel&#246&#223t wird dies durch einkommende Nachrichten am Input Port des Knotens. </p>
@@ -147,44 +175,40 @@
 <script type="text/x-red" data-help-name="revpi-server">
 
 <dl class="message-properties">
-        <dt>Server
-            <span class="property-type">string</span>
+        <dt><i class="fa fa-random"></i> Server
+            <span class="property-type">String</span>
         </dt>
         <dd> Adresse des Revolution Pi. L&#228uft Node-Red auf dem zu steuernden RevPi 
 		kann "localhost" oder 127.0.0.1 genutzt werden.</dd>
     
-        <dt>Port
-            <span class="property-type">string</span>
+        <dt><i class="fa fa-circle"></i> Port
+            <span class="property-type">String</span>
         </dt>
         <dd> Port 	&#252ber dem der Service des RevPi-Nodes-Server erreichbar ist.
 		Standardwert ist Port 8000</dd>
 		
-		<dt>Benutzer
-            <span class="property-type">string</span>
+		<dt><i class="fa fa-circle"></i> Benutzer
+            <span class="property-type">String</span>
         </dt>
         <dd> Name des autorisierten Benutzers</dd>
 		
-		<dt>Passwort
-            <span class="property-type">string</span>
+		<dt><i class="fa fa-circle"></i> Passwort
+            <span class="property-type">String</span>
         </dt>
         <dd> Passwort des autorisierten Benutzers</dd>
 		
-		<dt>Striktes SSL
-            <span class="property-type">string</span>
+		<dt><i class="fa fa-circle"></i> Striktes SSL
+            <span class="property-type">String</span>
         </dt>
         <dd>Lehne nicht vertrauenswürdiges Server-Zertifikat ab</dd>
-        
-        <dt>Root-Zertifikat Pfad (CA)
-            <span class="property-type">string</span>
+
+        <dt><i class="fa fa-circle"></i> Root-Zertifikat Pfad (CA)
+            <span class="property-type">String</span>
         </dt>
         <dd>Pfad zum Root-Zertifikat. Erforderlich für striktes SSL</dd>
     </dl>
 <h2>Details</h2>
-  <p>Um auf die Ein- und Ausg&#228nge des RevPis zugreifen zu k&#246nnen muss der Node mit den RevPi verbunden werden.</p>
-  <p>In der Regel ist Node-Red auf dem RevPi installiert, deswegen kann die lokale Adresse in verbindung mit Port 8000 genutzt werden.
+  <p>Um auf die Ein- und Ausg&#228nge des RevPis zugreifen zu k&#246nnen muss der Knoten mit dem RevPi Server verbunden werden.</p>
+  <p>In der Regel ist Node-Red auf dem RevPi installiert, deswegen kann üblicherweise die lokale Adresse in Verbindung mit dem Port 8000 genutzt werden.
   </p>
-
-
-
-
 </script>

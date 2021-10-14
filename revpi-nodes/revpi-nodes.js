@@ -20,7 +20,7 @@ function createWebsocket(config, callback) {
     var url = "wss://" + config.host + ":" + config.port;
 	
 	//Remove potential old websocket on same url
-    //removeWebsocket(config);
+    removeWebsocket(config);
 	
 	var socket = new socketClass(url, config);
 	socket.connect(callback);
@@ -28,13 +28,6 @@ function createWebsocket(config, callback) {
 		config: config,
 		socket: socket
 		};
-    return socket;
-}
-
-function createTmpWebsocket(config, callback) {
-    var url = "wss://" + config.host + ":" + config.port;
-	var socket = new socketClass(url, config);
-    socket.connect(callback);
     return socket;
 }
 
@@ -46,17 +39,12 @@ function removeWebsocket(config) {
     }
 }
 
-function removeTmpWebsocket(socket) {
-    if (socket) {
-		socket.kill();
-    }
-}
-
 module.exports = function (RED) {
     function RevpiServer(config) {
         RED.nodes.createNode(this, config, undefined);
         this.host = config.host;
         this.port = config.port;
+		
 		
 		this.socketConfig={
 			host: config.host,
@@ -64,12 +52,19 @@ module.exports = function (RED) {
 			user: config.user ? config.user : "",
 			password: config.password ? config.password : "",
 			rejectUnauthorized: config.rejectUnauthorized ? config.rejectUnauthorized : false,
-			ca: config.ca || "" 
+			getAutomaticUpdates : 'True',
+			ca: config.ca || "" ,
+			canReconnect: true
 		}
 		
-        this.socket = createWebsocket(this.socketConfig,function () {});
-		
         var node = this;
+		
+        this.socket = createWebsocket(this.socketConfig,function () {
+			if(node.socket.isAuthorized()){
+				log("Connected server "+node.host+":"+node.port);
+			}
+		});
+		
 
 		if(config.ca && !fs.existsSync(config.ca)){
 			node.error("CA certificate with path "+config.ca+" not found!");
@@ -77,7 +72,9 @@ module.exports = function (RED) {
 		
         this.on("close", function (removed, done) {
             removeWebsocket(node.socketConfig);
-			this.socket.kill(done);
+			if (done) {
+				setTimeout(done, 1);
+			}
         });
 
     }
@@ -88,35 +85,34 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config, undefined);
         this.server = RED.nodes.getNode(config.server);
         this.inputpin = config.inputpin;
-
+        this.topic = config.topic;
+		
         if (this.server) {
 			this.server.socket.registerInput(this);
             var node = this;
 			
-			if(this.server.loggedIn === true){
+			this.server.socket.sendCommand("getpin", function (msg) {
+				var data = JSON.parse(msg);
 				
-				this.server.socket.sendCommand("getpin", function (msg) {
-					data = JSON.parse(msg);
-			
-					if (data !== false)
-					{
-						var pin = data.name, value = data.value, error = data.error;
-							
-						if (error === "ERROR_AUTH"){
-							node.status(node.getStatusObject("error", "NOT AUTHORIZED"));
-						}else if (error === "ERROR_UNKNOWN"){
-							node.status(node.getStatusObject("error", "UNKNOWN ERROR"));
-						}else if (error === "ERROR_PIN") {
-							node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
-						}else{
-							node.send({payload: value, topic: "revpi/single/"+pin});
-						}
-							
+				if (data !== false)
+				{
+					var pin = data.name, value = data.value, error = data.error;
 						
+					if (error === "ERROR_AUTH"){
+						node.status(node.getStatusObject("error", "NOT AUTHORIZED"));
+					}else if (error === "ERROR_UNKNOWN"){
+						node.status(node.getStatusObject("error", "UNKNOWN ERROR"));
+					}else if (error === "ERROR_PIN") {
+						node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
+					}else{
+						var setTopic = (this.topic == null || this.topic == "") ? "revpi/single/"+pin : this.topic;
+						node.send({payload: value, topic: setTopic});
 					}
-				}, [this.inputpin]);
-			}
-        }
+						
+					
+				}
+			}, [this.inputpin]);
+		}
     }
 
     RED.nodes.registerType("revpi-single-input", RevpiSingleInput);
@@ -125,47 +121,48 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config, undefined);
         this.server = RED.nodes.getNode(config.server);
         this.inputpin = config.inputpin;
+        this.topic = config.topic;
+		
         if (this.server) {
-            this.server.socket.registerMultiInput(this);
-
+			this.server.socket.registerMultiInput(this);
             var node = this, promises = [];
 			
-			
-			if(this.server.loggedIn === true){
-				var pinNames = this.inputpin.split(" ").forEach(pinName => {
-					promises.push(new Promise((resolve, reject) => {
-						this.server.socket.sendCommand("getpin", function (msg) {
-							data = JSON.parse(msg);
-					
-							if (data !== false)
-							{
-								var pin = data.name, value = data.value, error = data.error;
-									
-								if (error === "ERROR_AUTH"){
-									reject("NOT AUTHORIZED");
-								}else if (error === "ERROR_UNKNOWN") {
-									reject("UNKNOWN ERROR");
-								}else if(error === "ERROR_PIN"){
-									reject("UNKNOWN PIN: " + pin + "!");
-								}else{
-									resolve(data);
-								}
-							}
+			var pinNames = this.inputpin.split(" ").forEach(pinName => {
+				promises.push(new Promise((resolve, reject) => {
+					this.server.socket.sendCommand("getpin", function (msg) {
+						var data = JSON.parse(msg);
+				
+						if (data !== false)
+						{
+							var pin = data.name, value = data.value, error = data.error;
 								
-						}, [pinName]);
-					}));
+							if (error === "ERROR_AUTH"){
+								reject("NOT AUTHORIZED");
+							}else if (error === "ERROR_UNKNOWN") {
+								reject("UNKNOWN ERROR");
+							}else if(error === "ERROR_PIN"){
+								reject("UNKNOWN PIN: " + pin + "!");
+							}else{
+								resolve(data);
+							}
+						}
+							
+					}, [pinName]);
+				}));
+			});
+			
+			Promise.all(promises).then(values => {
+				var payloadJSONObj = {};
+				values.forEach(valPair => {
+					payloadJSONObj[valPair.name] = valPair.value;
 				});
 				
-				Promise.all(promises).then(values => {
-					var payloadJSONObj = {};
-					values.forEach(valPair => {
-						payloadJSONObj[valPair.name] = valPair.value;
-					});
-					node.send({payload: payloadJSONObj, topic: "revpi/multi"});
-				}).catch(msg => {
-					node.status(node.getStatusObject("error", msg));
-				});
-			}
+				var setTopic = (node.topic == null || node.topic == "") ? "revpi/multi" : node.topic;
+				
+				node.send({payload: payloadJSONObj, topic: setTopic});
+			}).catch(msg => {
+				node.status(node.getStatusObject("error", msg));
+			});
         }
     }
 
@@ -176,11 +173,11 @@ module.exports = function (RED) {
         this.server = RED.nodes.getNode(config.server);
         this.inputpin = config.inputpin;
         this.getoverwritevalue = config.getoverwritevalue;
+        this.topic = config.topic;
 
         if (this.server) {
             this.server.socket.registerGetpin(this);
-			
-			this.loggedIn = this.server.loggedIn;
+			var node = this;
         }
 
         this.on("input", function (msg) {
@@ -188,7 +185,7 @@ module.exports = function (RED) {
 			
             if (this.server && pinName != null) {
 				this.server.socket.sendCommand("getpin", function (msg) {
-					data = JSON.parse(msg);
+					var data = JSON.parse(msg);
 			
 					if (data !== false)
 					{
@@ -202,7 +199,9 @@ module.exports = function (RED) {
 							node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
 						} else {
 							node.status(node.getStatusObject("info", "Connected - " + pin + " is " + value));
-							node.send({payload: value, topic: "revpi/single/"+pin});
+							
+							var setTopic = (node.topic == null || node.topic == "") ? "revpi/single/"+pin : node.topic;
+							node.send({payload: value, topic: setTopic});
 							
 						}
 						
@@ -223,6 +222,7 @@ module.exports = function (RED) {
 
         if (this.server) {
             this.server.socket.registerOutput(this);
+			var node = this;
         }
 
         this.on("input", function (msg) {
@@ -232,7 +232,7 @@ module.exports = function (RED) {
 			
             if (this.server && val !== null && typeof (val) !== "object") {
                 this.server.socket.sendCommand("output", function (msgAdditional) {
-					data = JSON.parse(msgAdditional);
+					var data = JSON.parse(msgAdditional);
 			
 					if (data !== false)
 					{
@@ -264,23 +264,23 @@ module.exports = function (RED) {
 				port: req.body.port,
 				user: req.body.user,
 				password: req.body.password,
-				rejectUnauthorized: JSON.parse(req.body.rejectUnauthorized)
+				getAutomaticUpdates : 'False',
+				rejectUnauthorized: JSON.parse(req.body.rejectUnauthorized),
+				canReconnect: false
 			}
 			
 			if(req.body.ca){
 				socketConfig.ca = req.body.ca;
 			}
 
-			var tmp_socket = createTmpWebsocket(socketConfig,function () {
+			var tmp_socket = createWebsocket(socketConfig,function () {
 
 				if(tmp_socket.isAuthorized()){
 					tmp_socket.sendCommand("list", function (res) {	
 						result.json(res);
-						removeTmpWebsocket(tmp_socket);
 					}, [req.body.force_update]);
 				}else{
 					result.json(false);
-					removeTmpWebsocket(tmp_socket);
 				}
 				
 			});
