@@ -184,6 +184,7 @@ module.exports = function (url, config) {
 					
 					setAllNodesStatus("error", "Reconnecting...");
 					
+					connection.close();
 					connection = new WebSocket(options.url, protocols, webSocketOptions);
 					connectToServer();
 					isReconnect = false;
