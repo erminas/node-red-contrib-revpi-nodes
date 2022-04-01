@@ -3,18 +3,21 @@
   
 	"single-input": {
 	  "server" : "Server",
-      "input-pin": "Input Pin"
+      "input-pin": "Input Pin",
+	  "topic": "Topic"
     },
 	
 	"multi-input": {
 	  "server" : "Server",
-      "input-pins": "Input Pins"
+      "input-pins": "Input Pins",
+	  "topic": "Topic"
     },
 	
     "getpin": {
 	  "server" : "Server",
       "getoverwritevalueLabel": "Pin Namen aus Payload nehmen",
-	  "input-pin": "Input Pin"
+	  "input-pin": "Input Pin",
+	  "topic": "Topic"
     },
 	
     "output": {
@@ -29,8 +32,8 @@
       "port": "Port",
 	  "user": "Benutzer",
 	  "password": "Passwort",
-    "rejectUnauthorized": "Striktes SSL",
-    "ca": "Root-Zertifikat Pfad (CA)"
+	  "rejectUnauthorized": "Striktes SSL",
+	  "ca": "Root-Zertifikat Pfad (CA)"
     }
 	
   }

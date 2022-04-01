@@ -18,7 +18,7 @@ This module provides a set of nodes in [Node-RED](https://nodered.org/) to read 
 
 Install the required backend server: [noderedrevpinodes-server](https://github.com/erminas/noderedrevpinodes-server) .
 
-The server requires  [Raspbian Stretch ](https://revolution.kunbus.de/shop/de/stretch) for correct function.
+The server requires [Raspbian Stretch ](https://revolution.kunbus.de/shop/de/stretch) or [Raspbian Buster ](https://revolutionpi.de/shop/de/buster).
 
 ```
 sudo apt-get install noderedrevpinodes-server
