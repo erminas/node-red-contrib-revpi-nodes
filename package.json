@@ -1,17 +1,21 @@
 {
   "name": "node-red-contrib-revpi-nodes",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "author": "erminas GmbH",
   "license": "LGPL-3.0-only",
   "description": "KUNBUS RevPi Nodes",
   "node-red": {
+	"version": ">=2.2.2",
     "nodes": {
       "revpi-nodes": "revpi-nodes/revpi-nodes.js"
     }
   },
   "dependencies": {
-    "ws": "7.1.1"
+    "ws": "8.8.1"
   },
+  "engines": {
+	"node": ">=16.0.0"
+	},
   "main": "index.js",
   "repository": {
     "type": "git",

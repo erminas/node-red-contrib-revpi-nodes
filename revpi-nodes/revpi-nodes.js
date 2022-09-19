@@ -6,37 +6,26 @@
  * file 'LICENSE.txt', which is part of this source code package.
  */
  
-var websockets = {};
 var socketClass = require("./libs/socket.js");
 var fs = require('fs');
 
 var log = function (msg) {
 	if (console) {
-		console.log.apply(console, [].slice.call(arguments));
+		console.log.apply(console, [new Date().toISOString().replace('T', ' ').substr(0, 19)].concat([].slice.call(arguments)));
 	}
 };
 
 function createWebsocket(config, callback) {
     var url = "wss://" + config.host + ":" + config.port;
 	
-	//Remove potential old websocket on same url
-    removeWebsocket(config);
-	
 	var socket = new socketClass(url, config);
 	socket.connect(callback);
-    websockets[url] = {
-		config: config,
-		socket: socket
-		};
-    return socket;
+	
+	return socket;
 }
 
-function removeWebsocket(config) {
-	var url = "wss://" + config.host + ":" + config.port;
-    if (websockets[url]) {
-		websockets[url].socket.kill();
-		delete websockets[url];
-    }
+function removeWebsocket(socket) {
+    socket.kill();
 }
 
 module.exports = function (RED) {
@@ -71,7 +60,7 @@ module.exports = function (RED) {
 		}
 		
         this.on("close", function (removed, done) {
-            removeWebsocket(node.socketConfig);
+            removeWebsocket(node.socket);
 			if (done) {
 				setTimeout(done, 1);
 			}
@@ -121,6 +110,7 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config, undefined);
         this.server = RED.nodes.getNode(config.server);
         this.inputpin = config.inputpin;
+        this.inputValues = {};
         this.topic = config.topic;
 		
         if (this.server) {
@@ -158,7 +148,7 @@ module.exports = function (RED) {
 				});
 				
 				var setTopic = (node.topic == null || node.topic == "") ? "revpi/multi" : node.topic;
-				
+				this.inputValues = payloadJSONObj;
 				node.send({payload: payloadJSONObj, topic: setTopic});
 			}).catch(msg => {
 				node.status(node.getStatusObject("error", msg));
@@ -278,9 +268,11 @@ module.exports = function (RED) {
 				if(tmp_socket.isAuthorized()){
 					tmp_socket.sendCommand("list", function (res) {	
 						result.json(res);
+						removeWebsocket(tmp_socket);
 					}, [req.body.force_update]);
 				}else{
 					result.json(false);
+					removeWebsocket(tmp_socket);
 				}
 				
 			});
@@ -292,3 +284,4 @@ module.exports = function (RED) {
         }
     });
 }
+

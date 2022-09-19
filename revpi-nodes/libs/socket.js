@@ -11,9 +11,10 @@ var pjson = require('./../../package.json');
 var fs = require('fs');
 
 module.exports = function (url, config) {
+	
     var log = function (msg) {
         if (console) {
-            console.log.apply(console, [].slice.call(arguments));
+			console.log.apply(console, [new Date().toISOString().replace('T', ' ').substr(0, 19)].concat([].slice.call(arguments)));
         }
     };
 	
@@ -109,6 +110,7 @@ module.exports = function (url, config) {
 							inputNodes[id].status(getStatusObject("info", "Change - " + pin + " is " + value));
 						}
 					}
+
 					for (id in multiInputNodes) {
 						if (!multiInputNodes.hasOwnProperty(id)) continue;
 
@@ -117,27 +119,13 @@ module.exports = function (url, config) {
 							promises.push(Promise.resolve(multiInputNodes[id]));
 							promises.push(Promise.resolve(data));
 
-								
-							pins = pins.filter(a => a !== pin).forEach(otherPin => {
-								promises.push(new Promise((resolve, reject) => {
-									sendCommandMethod("getpin", function (msgAdditional) {
-										dataAdditional = JSON.parse(msgAdditional);
-											
-										if (dataAdditional !== false)
-										{
-											var pinAdditional = dataAdditional.name, valueAdditional = dataAdditional.value, error = dataAdditional.error;
-											
-											if (error === "ERROR_AUTH"){
-												reject([otherPin, "NOT AUTHORIZED"]);
-											}else if (error === "ERROR_UNKNOWN"){
-												reject([otherPin, "UNKNOWN ERROR"]);
-											}else if (error === "ERROR_PIN") {
-												reject([otherPin, "UNKNOWN PIN: " + pinAdditional + "!"]);
-											}else{
-												resolve(dataAdditional);
-											}
-										}
-									}, [otherPin]);
+							pins.filter(a => a !== pin).forEach(otherPin => {
+								promises.push(new Promise((resolve) => {
+									var pinValue = {
+										name: otherPin,
+										value: multiInputNodes[id].inputValues[otherPin]
+									}
+									resolve(pinValue);
 								}));
 							});
 
@@ -147,16 +135,17 @@ module.exports = function (url, config) {
 								values.forEach(valPair => {
 									payloadJSONObj[valPair.name] = valPair.value;
 								});
-								
+								multiInputNodes[id].inputValues[pin] = payloadJSONObj[pin];
+
 								var setTopic = (node.topic == null || node.topic == "") ? "revpi/multi" : node.topic;
-								
+
 								node.send({payload: payloadJSONObj, topic: setTopic});
 								node.status(getStatusObject("info", "Received value(s)"));
 							}).catch((msg) => {
 								for (id in inputNodes) {
 									if (!inputNodes.hasOwnProperty(id)) continue;
 
-									if (inputNodes[id].inputpin === msg[0]){ 
+									if (inputNodes[id].inputpin === msg[0]){
 										inputNodes[id].status(getStatusObject("error", msg[1]));
 									}
 								}
@@ -218,7 +207,27 @@ module.exports = function (url, config) {
             reconnectAttempts = 0;
             isReconnect = false;
             
+			var inputPins = [];
+			
+			for (id in inputNodes) {
+				if (!inputNodes.hasOwnProperty(id)) continue;
 
+				inputPins.push(inputNodes[id].inputpin);
+			}
+			
+			for (id in multiInputNodes) {
+				if (!multiInputNodes.hasOwnProperty(id)) continue;
+
+				inputPins = inputPins.concat(multiInputNodes[id].inputpin.split(" "));
+			}
+			
+			for (id in getpinNodes) {
+				if (!getpinNodes.hasOwnProperty(id)) continue;
+
+				inputPins.push(getpinNodes[id].inputpin);
+			}
+			
+			
 			sendCommandMethod("login", function (msg) {
 				data = JSON.parse(msg);
             
@@ -253,7 +262,7 @@ module.exports = function (url, config) {
 				if(cb){
 					cb();
 				}
-			}, [pjson.version,options.user,options.password,options.getAutomaticUpdates]);
+			}, [pjson.version,options.user,options.password,options.getAutomaticUpdates, inputPins]);
 			
         };
 
@@ -352,7 +361,6 @@ module.exports = function (url, config) {
         node.getStatusObject = getStatusObject;
         inputNodes[node.id] = node;
 		node.status(getStatusObject("error", "Connecting..."));
-		
     };
 
     this.registerMultiInput = function (node) {
@@ -382,3 +390,4 @@ module.exports = function (url, config) {
     };
 
 };
+
