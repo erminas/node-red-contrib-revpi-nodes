@@ -94,7 +94,7 @@ module.exports = function (RED) {
 					}else if (error === "ERROR_PIN") {
 						node.status(node.getStatusObject("error", "UNKNOWN PIN: " + pin + "!"));
 					}else{
-						var setTopic = (this.topic == null || this.topic == "") ? "revpi/single/"+pin : this.topic;
+						var setTopic = (node.topic == null || node.topic == "") ? "revpi/single/" + pin : node.topic;
 						node.send({payload: value, topic: setTopic});
 					}
 						
